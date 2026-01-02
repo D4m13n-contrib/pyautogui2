@@ -1,0 +1,7 @@
+{
+  "uuid": "gnome-wayland@pyautogui.org",
+  "name": "PyAutoGUI GNOME Wayland Backend",
+  "description": "Expose pointer and display info over D-Bus for PyAutoGUI on GNOME Wayland",
+  "shell-version": ["45", "46", "47", "48"],
+  "version": 1
+}

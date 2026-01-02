@@ -1,0 +1,89 @@
+name: CI
+
+on:
+  push:
+    branches: [ dev, main ]
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'docs/tests/**'
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Run all tests (${{ matrix.os }}, ${{ matrix.python-version }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ['3.10', '3.11', '3.12']
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+        with:
+          fetch-depth: 2
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@main
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .[dev]
+
+      - name: Run tests
+        run: pytest -m 'not real'
+
+  quality:
+    name: Quality checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+        with:
+          fetch-depth: 2
+
+      - name: Set up Python
+        uses: actions/setup-python@main
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get install -y graphviz
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Ruff
+        run: ruff check src/ tests/
+
+      - name: Mypy
+        run: mypy src/
+
+      - name: Coverage
+        run: pytest --cov=src/pyautogui2 --cov-branch --cov-report=xml --cov-fail-under=100 -m 'not real'
+
+      - name: Upload coverage to Codecov
+        if: github.ref == 'refs/heads/main'
+        uses: codecov/codecov-action@main
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage.xml
+          override_branch: main
+          fail_ci_if_error: true
+
+      - name: Regenerate fixture graph
+        run: python docs/tests/dump_pytest_fixtures.py
+
+      - name: Check fixture graph (.dot) is up to date
+        run: |
+          git diff --exit-code docs/tests/pytest_fixture_graph.dot || \
+            (echo "❌ pytest_fixture_graph.dot is out of date. Run docs/tests/dump_pytest_fixtures.py and commit the result." && exit 1)

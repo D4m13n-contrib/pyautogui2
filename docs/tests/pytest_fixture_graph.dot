@@ -1,0 +1,347 @@
+// Pytest Fixtures Dependencies
+digraph {
+	bgcolor="#FAFAFA" fontname=Helvetica fontsize=10 nodesep=0.4 pad=0.5 rankdir=LR ranksep=1.2 splines=ortho
+	node [fontname=Helvetica fontsize=10 margin="0.15,0.08" shape=box style=filled]
+	edge [fontname=Helvetica fontsize=9]
+	subgraph cluster_1 {
+		color="#CCCCCC" fillcolor="#F8F9F9" fontname=Helvetica fontsize=9 label="common.py" style="rounded,filled"
+		isolated_environment [label=isolated_environment color="#27AE60" fillcolor="#A9DFBF" penwidth=1 style=filled]
+		isolated_lazy_import [label=isolated_lazy_import color="#27AE60" fillcolor="#A9DFBF" penwidth=1 style=filled]
+		isolated_settings [label=isolated_settings color="#27AE60" fillcolor="#A9DFBF" penwidth=1 style=filled]
+		isolated_singleton [label=isolated_singleton color="#27AE60" fillcolor="#A9DFBF" penwidth=1 style=filled]
+		isolated_test [label="!! isolated_test !!" color="#FC392B" fillcolor="#A9DFBF" penwidth=2.5 style="filled,bold"]
+	}
+	subgraph cluster_2 {
+		color="#CCCCCC" fillcolor="#F8F9F9" fontname=Helvetica fontsize=9 label="core.py" style="rounded,filled"
+		osal_mocked [label=osal_mocked color="#2E86C1" fillcolor="#AED6F1" penwidth=1 style=filled]
+		pyautogui_mocked [label=pyautogui_mocked color="#2E86C1" fillcolor="#AED6F1" penwidth=1 style=filled]
+		pyautogui_real [label=pyautogui_real color="#2E86C1" fillcolor="#AED6F1" penwidth=1 style=filled]
+		pyautogui_real_capkb [label=pyautogui_real_capkb color="#2E86C1" fillcolor="#AED6F1" penwidth=1 style=filled]
+		tkinter_session [label=tkinter_session color="#2E86C1" fillcolor="#AED6F1" penwidth=1 style=filled]
+		tkinter_window [label=tkinter_window color="#2E86C1" fillcolor="#AED6F1" penwidth=1 style=filled]
+	}
+	subgraph cluster_3 {
+		color="#CCCCCC" fillcolor="#F8F9F9" fontname=Helvetica fontsize=9 label="lib.py" style="rounded,filled"
+		isolated_lib_mouseinfo [label=isolated_lib_mouseinfo color="#7F8C8D" fillcolor="#D5DBDB" penwidth=1 style=filled]
+		isolated_lib_pygetwindow [label=isolated_lib_pygetwindow color="#7F8C8D" fillcolor="#D5DBDB" penwidth=1 style=filled]
+		isolated_lib_pymsgbox [label=isolated_lib_pymsgbox color="#7F8C8D" fillcolor="#D5DBDB" penwidth=1 style=filled]
+		isolated_lib_pyscreeze [label=isolated_lib_pyscreeze color="#7F8C8D" fillcolor="#D5DBDB" penwidth=1 style=filled]
+	}
+	subgraph cluster_4 {
+		bgcolor="#F9E79F33" color="#D4AC0D" fontname="Helvetica Bold" fontsize=11 label=controller penwidth=2 style="rounded,bold"
+		subgraph cluster_5 {
+			color="#CCCCCC" fillcolor="#F8F9F9" fontname=Helvetica fontsize=9 label="dialogs.py" style="rounded,filled"
+			dialogs_controller [label=dialogs_controller color="#D4AC0D" fillcolor="#F9E79F" penwidth=1 style=filled]
+		}
+		subgraph cluster_6 {
+			color="#CCCCCC" fillcolor="#F8F9F9" fontname=Helvetica fontsize=9 label="keyboard.py" style="rounded,filled"
+			keyboard_controller [label=keyboard_controller color="#D4AC0D" fillcolor="#F9E79F" penwidth=1 style=filled]
+		}
+		subgraph cluster_7 {
+			color="#CCCCCC" fillcolor="#F8F9F9" fontname=Helvetica fontsize=9 label="manager.py" style="rounded,filled"
+			controller_manager [label=controller_manager color="#D4AC0D" fillcolor="#F9E79F" penwidth=1 style=filled]
+		}
+		subgraph cluster_8 {
+			color="#CCCCCC" fillcolor="#F8F9F9" fontname=Helvetica fontsize=9 label="pointer.py" style="rounded,filled"
+			pointer_controller [label=pointer_controller color="#D4AC0D" fillcolor="#F9E79F" penwidth=1 style=filled]
+		}
+		subgraph cluster_9 {
+			color="#CCCCCC" fillcolor="#F8F9F9" fontname=Helvetica fontsize=9 label="screen.py" style="rounded,filled"
+			screen_controller [label=screen_controller color="#D4AC0D" fillcolor="#F9E79F" penwidth=1 style=filled]
+		}
+	}
+	subgraph cluster_10 {
+		bgcolor="#FDEBD033" color="#E67E22" fontname="Helvetica Bold" fontsize=11 label=osal penwidth=2 style="rounded,bold"
+		subgraph cluster_11 {
+			bgcolor="#FAD7A033" color="#E67E22" fontname="Helvetica Bold" fontsize=11 label=linux penwidth=2 style="rounded,bold"
+			subgraph cluster_12 {
+				color="#CCCCCC" fillcolor="#F8F9F9" fontname=Helvetica fontsize=9 label="common.py" style="rounded,filled"
+				isolated_linux [label=isolated_linux color="#E67E22" fillcolor="#FAD7A0" penwidth=1 style=filled]
+				isolated_linux_environment [label=isolated_linux_environment color="#E67E22" fillcolor="#FAD7A0" penwidth=1 style=filled]
+				linux_dialogs [label=linux_dialogs color="#E67E22" fillcolor="#FAD7A0" penwidth=1 style=filled]
+				linux_keyboard [label=linux_keyboard color="#E67E22" fillcolor="#FAD7A0" penwidth=1 style=filled]
+				linux_pointer [label=linux_pointer color="#E67E22" fillcolor="#FAD7A0" penwidth=1 style=filled]
+				linux_screen [label=linux_screen color="#E67E22" fillcolor="#FAD7A0" penwidth=1 style=filled]
+				mocked_linux_subprocess [label=mocked_linux_subprocess color="#E67E22" fillcolor="#FAD7A0" penwidth=1 style=filled]
+			}
+			subgraph cluster_13 {
+				bgcolor="#FAD7A033" color="#E67E22" fontname="Helvetica Bold" fontsize=11 label=compositor penwidth=2 style="rounded,bold"
+				subgraph cluster_14 {
+					color="#CCCCCC" fillcolor="#F8F9F9" fontname=Helvetica fontsize=9 label="gnome_shell.py" style="rounded,filled"
+					isolated_gnome_shell [label=isolated_gnome_shell color="#E67E22" fillcolor="#FAD7A0" penwidth=1 style=filled]
+					linux_ds_wayland_co_gnome_shell_dialogs [label=linux_ds_wayland_co_gnome_shell_dialogs color="#E67E22" fillcolor="#FAD7A0" penwidth=1 style=filled]
+					linux_ds_wayland_co_gnome_shell_keyboard [label=linux_ds_wayland_co_gnome_shell_keyboard color="#E67E22" fillcolor="#FAD7A0" penwidth=1 style=filled]
+					linux_ds_wayland_co_gnome_shell_pointer [label=linux_ds_wayland_co_gnome_shell_pointer color="#E67E22" fillcolor="#FAD7A0" penwidth=1 style=filled]
+					linux_ds_wayland_co_gnome_shell_screen [label=linux_ds_wayland_co_gnome_shell_screen color="#E67E22" fillcolor="#FAD7A0" penwidth=1 style=filled]
+				}
+				subgraph cluster_15 {
+					color="#CCCCCC" fillcolor="#F8F9F9" fontname=Helvetica fontsize=9 label="gnome_shell_real.py" style="rounded,filled"
+					gnome_shell_backend_real [label=gnome_shell_backend_real color="#E67E22" fillcolor="#FAD7A0" penwidth=1 style=filled]
+				}
+			}
+			subgraph cluster_16 {
+				bgcolor="#FAD7A033" color="#E67E22" fontname="Helvetica Bold" fontsize=11 label=desktop_environment penwidth=2 style="rounded,bold"
+				subgraph cluster_17 {
+					color="#CCCCCC" fillcolor="#F8F9F9" fontname=Helvetica fontsize=9 label="gnome.py" style="rounded,filled"
+					isolated_linux_gnome [label=isolated_linux_gnome color="#E67E22" fillcolor="#FAD7A0" penwidth=1 style=filled]
+					linux_de_gnome_dialogs [label="-- linux_de_gnome_dialogs --" color="#E74C3C" fillcolor="#FAD7A0" penwidth=2 style="filled,bold"]
+					linux_de_gnome_keyboard [label="-- linux_de_gnome_keyboard --" color="#E74C3C" fillcolor="#FAD7A0" penwidth=2 style="filled,bold"]
+					linux_de_gnome_pointer [label=linux_de_gnome_pointer color="#E67E22" fillcolor="#FAD7A0" penwidth=1 style=filled]
+					linux_de_gnome_screen [label="-- linux_de_gnome_screen --" color="#E74C3C" fillcolor="#FAD7A0" penwidth=2 style="filled,bold"]
+				}
+				subgraph cluster_18 {
+					color="#CCCCCC" fillcolor="#F8F9F9" fontname=Helvetica fontsize=9 label="kde.py" style="rounded,filled"
+					isolated_linux_kde [label=isolated_linux_kde color="#E67E22" fillcolor="#FAD7A0" penwidth=1 style=filled]
+					linux_de_kde_dialogs [label="-- linux_de_kde_dialogs --" color="#E74C3C" fillcolor="#FAD7A0" penwidth=2 style="filled,bold"]
+					linux_de_kde_keyboard [label="-- linux_de_kde_keyboard --" color="#E74C3C" fillcolor="#FAD7A0" penwidth=2 style="filled,bold"]
+					linux_de_kde_pointer [label=linux_de_kde_pointer color="#E67E22" fillcolor="#FAD7A0" penwidth=1 style=filled]
+					linux_de_kde_screen [label="-- linux_de_kde_screen --" color="#E74C3C" fillcolor="#FAD7A0" penwidth=2 style="filled,bold"]
+				}
+				subgraph cluster_19 {
+					color="#CCCCCC" fillcolor="#F8F9F9" fontname=Helvetica fontsize=9 label="xfce.py" style="rounded,filled"
+					isolated_linux_xfce [label=isolated_linux_xfce color="#E67E22" fillcolor="#FAD7A0" penwidth=1 style=filled]
+					linux_de_xfce_dialogs [label="-- linux_de_xfce_dialogs --" color="#E74C3C" fillcolor="#FAD7A0" penwidth=2 style="filled,bold"]
+					linux_de_xfce_keyboard [label="-- linux_de_xfce_keyboard --" color="#E74C3C" fillcolor="#FAD7A0" penwidth=2 style="filled,bold"]
+					linux_de_xfce_pointer [label=linux_de_xfce_pointer color="#E67E22" fillcolor="#FAD7A0" penwidth=1 style=filled]
+					linux_de_xfce_screen [label="-- linux_de_xfce_screen --" color="#E74C3C" fillcolor="#FAD7A0" penwidth=2 style="filled,bold"]
+				}
+			}
+			subgraph cluster_20 {
+				bgcolor="#FAD7A033" color="#E67E22" fontname="Helvetica Bold" fontsize=11 label=display_server penwidth=2 style="rounded,bold"
+				subgraph cluster_21 {
+					color="#CCCCCC" fillcolor="#F8F9F9" fontname=Helvetica fontsize=9 label="wayland.py" style="rounded,filled"
+					isolated_linux_wayland [label=isolated_linux_wayland color="#E67E22" fillcolor="#FAD7A0" penwidth=1 style=filled]
+					linux_ds_wayland_backend_real [label=linux_ds_wayland_backend_real color="#E67E22" fillcolor="#FAD7A0" penwidth=1 style=filled]
+					linux_ds_wayland_dialogs [label="-- linux_ds_wayland_dialogs --" color="#E74C3C" fillcolor="#FAD7A0" penwidth=2 style="filled,bold"]
+					linux_ds_wayland_keyboard [label=linux_ds_wayland_keyboard color="#E67E22" fillcolor="#FAD7A0" penwidth=1 style=filled]
+					linux_ds_wayland_pointer [label=linux_ds_wayland_pointer color="#E67E22" fillcolor="#FAD7A0" penwidth=1 style=filled]
+					linux_ds_wayland_screen [label="-- linux_ds_wayland_screen --" color="#E74C3C" fillcolor="#FAD7A0" penwidth=2 style="filled,bold"]
+				}
+				subgraph cluster_22 {
+					color="#CCCCCC" fillcolor="#F8F9F9" fontname=Helvetica fontsize=9 label="x11.py" style="rounded,filled"
+					isolated_linux_x11 [label=isolated_linux_x11 color="#E67E22" fillcolor="#FAD7A0" penwidth=1 style=filled]
+					linux_ds_x11_dialogs [label="-- linux_ds_x11_dialogs --" color="#E74C3C" fillcolor="#FAD7A0" penwidth=2 style="filled,bold"]
+					linux_ds_x11_keyboard [label=linux_ds_x11_keyboard color="#E67E22" fillcolor="#FAD7A0" penwidth=1 style=filled]
+					linux_ds_x11_pointer [label=linux_ds_x11_pointer color="#E67E22" fillcolor="#FAD7A0" penwidth=1 style=filled]
+					linux_ds_x11_screen [label=linux_ds_x11_screen color="#E67E22" fillcolor="#FAD7A0" penwidth=1 style=filled]
+				}
+			}
+		}
+		subgraph cluster_23 {
+			bgcolor="#FADBD833" color="#E74C3C" fontname="Helvetica Bold" fontsize=11 label=macos penwidth=2 style="rounded,bold"
+			subgraph cluster_24 {
+				color="#CCCCCC" fillcolor="#F8F9F9" fontname=Helvetica fontsize=9 label="common.py" style="rounded,filled"
+				isolated_macos [label=isolated_macos color="#E74C3C" fillcolor="#FADBD8" penwidth=1 style=filled]
+				isolated_macos_environment [label=isolated_macos_environment color="#E74C3C" fillcolor="#FADBD8" penwidth=1 style=filled]
+				macos_dialogs [label=macos_dialogs color="#E74C3C" fillcolor="#FADBD8" penwidth=1 style=filled]
+				macos_keyboard [label=macos_keyboard color="#E74C3C" fillcolor="#FADBD8" penwidth=1 style=filled]
+				macos_pointer [label=macos_pointer color="#E74C3C" fillcolor="#FADBD8" penwidth=1 style=filled]
+				macos_screen [label=macos_screen color="#E74C3C" fillcolor="#FADBD8" penwidth=1 style=filled]
+				mocked_macos_subprocess [label=mocked_macos_subprocess color="#E74C3C" fillcolor="#FADBD8" penwidth=1 style=filled]
+			}
+		}
+		subgraph cluster_25 {
+			bgcolor="#D7BDE233" color="#8E44AD" fontname="Helvetica Bold" fontsize=11 label=windows penwidth=2 style="rounded,bold"
+			subgraph cluster_26 {
+				color="#CCCCCC" fillcolor="#F8F9F9" fontname=Helvetica fontsize=9 label="common.py" style="rounded,filled"
+				isolated_windows [label=isolated_windows color="#8E44AD" fillcolor="#D7BDE2" penwidth=1 style=filled]
+				isolated_windows_environment [label=isolated_windows_environment color="#8E44AD" fillcolor="#D7BDE2" penwidth=1 style=filled]
+				windows_dialogs [label=windows_dialogs color="#8E44AD" fillcolor="#D7BDE2" penwidth=1 style=filled]
+				windows_keyboard [label=windows_keyboard color="#8E44AD" fillcolor="#D7BDE2" penwidth=1 style=filled]
+				windows_pointer [label=windows_pointer color="#8E44AD" fillcolor="#D7BDE2" penwidth=1 style=filled]
+				windows_screen [label=windows_screen color="#8E44AD" fillcolor="#D7BDE2" penwidth=1 style=filled]
+			}
+		}
+	}
+	subgraph cluster_27 {
+		bgcolor="#E8DAEF33" color="#9B59B6" fontname="Helvetica Bold" fontsize=11 label=utils penwidth=2 style="rounded,bold"
+		subgraph cluster_28 {
+			color="#CCCCCC" fillcolor="#F8F9F9" fontname=Helvetica fontsize=9 label="tweening.py" style="rounded,filled"
+			tweening_manager_mocked [label=tweening_manager_mocked color="#9B59B6" fillcolor="#E8DAEF" penwidth=1 style=filled]
+			tweening_manager_mocked_no_pytweening [label=tweening_manager_mocked_no_pytweening color="#9B59B6" fillcolor="#E8DAEF" penwidth=1 style=filled]
+			tweening_manager_real [label=tweening_manager_real color="#9B59B6" fillcolor="#E8DAEF" penwidth=1 style=filled]
+		}
+		subgraph cluster_29 {
+			bgcolor="#E8DAEF33" color="#9B59B6" fontname="Helvetica Bold" fontsize=11 label=decorators penwidth=2 style="rounded,bold"
+			subgraph cluster_30 {
+				color="#CCCCCC" fillcolor="#F8F9F9" fontname=Helvetica fontsize=9 label="failsafe.py" style="rounded,filled"
+				failsafe_manager_mocked [label=failsafe_manager_mocked color="#9B59B6" fillcolor="#E8DAEF" penwidth=1 style=filled]
+				failsafe_manager_real [label=failsafe_manager_real color="#9B59B6" fillcolor="#E8DAEF" penwidth=1 style=filled]
+			}
+			subgraph cluster_31 {
+				color="#CCCCCC" fillcolor="#F8F9F9" fontname=Helvetica fontsize=9 label="log_screenshot.py" style="rounded,filled"
+				log_screenshot_manager_mocked [label=log_screenshot_manager_mocked color="#9B59B6" fillcolor="#E8DAEF" penwidth=1 style=filled]
+				log_screenshot_manager_real [label="-- log_screenshot_manager_real --" color="#E74C3C" fillcolor="#E8DAEF" penwidth=2 style="filled,bold"]
+			}
+			subgraph cluster_32 {
+				color="#CCCCCC" fillcolor="#F8F9F9" fontname=Helvetica fontsize=9 label="pause.py" style="rounded,filled"
+				pause_manager_mocked [label=pause_manager_mocked color="#9B59B6" fillcolor="#E8DAEF" penwidth=1 style=filled]
+				pause_manager_real [label=pause_manager_real color="#9B59B6" fillcolor="#E8DAEF" penwidth=1 style=filled]
+			}
+		}
+	}
+	controller_manager -> dialogs_controller [color="#D4AC0D99"]
+	isolated_linux_wayland -> gnome_shell_backend_real [color="#E67E2299"]
+	isolated_linux_wayland -> isolated_gnome_shell [color="#E67E2299"]
+	isolated_linux_environment -> isolated_linux [color="#E67E2299"]
+	mocked_linux_subprocess -> isolated_linux [color="#E67E2299"]
+	isolated_linux -> isolated_linux_gnome [color="#E67E2299"]
+	isolated_linux -> isolated_linux_kde [color="#E67E2299"]
+	isolated_linux -> isolated_linux_wayland [color="#E67E2299"]
+	isolated_linux -> isolated_linux_x11 [color="#E67E2299"]
+	isolated_linux -> isolated_linux_xfce [color="#E67E2299"]
+	isolated_macos_environment -> isolated_macos [color="#E74C3C99"]
+	mocked_macos_subprocess -> isolated_macos [color="#E74C3C99"]
+	isolated_environment -> isolated_test [color="#27AE6099"]
+	isolated_settings -> isolated_test [color="#27AE6099"]
+	isolated_singleton -> isolated_test [color="#27AE6099"]
+	isolated_lazy_import -> isolated_test [color="#27AE6099"]
+	isolated_windows_environment -> isolated_windows [color="#8E44AD99"]
+	controller_manager -> keyboard_controller [color="#D4AC0D99"]
+	isolated_linux_gnome -> linux_de_gnome_dialogs [color="#E67E2299"]
+	isolated_lib_pymsgbox -> linux_de_gnome_dialogs [color="#7F8C8D99"]
+	isolated_linux_gnome -> linux_de_gnome_keyboard [color="#E67E2299"]
+	isolated_linux_gnome -> linux_de_gnome_pointer [color="#E67E2299"]
+	isolated_lib_mouseinfo -> linux_de_gnome_pointer [color="#7F8C8D99"]
+	isolated_linux_gnome -> linux_de_gnome_screen [color="#E67E2299"]
+	isolated_lib_pyscreeze -> linux_de_gnome_screen [color="#7F8C8D99"]
+	isolated_lib_pygetwindow -> linux_de_gnome_screen [color="#7F8C8D99"]
+	isolated_linux_kde -> linux_de_kde_dialogs [color="#E67E2299"]
+	isolated_lib_pymsgbox -> linux_de_kde_dialogs [color="#7F8C8D99"]
+	isolated_linux_kde -> linux_de_kde_keyboard [color="#E67E2299"]
+	isolated_linux_kde -> linux_de_kde_pointer [color="#E67E2299"]
+	isolated_lib_mouseinfo -> linux_de_kde_pointer [color="#7F8C8D99"]
+	isolated_linux_kde -> linux_de_kde_screen [color="#E67E2299"]
+	isolated_lib_pyscreeze -> linux_de_kde_screen [color="#7F8C8D99"]
+	isolated_lib_pygetwindow -> linux_de_kde_screen [color="#7F8C8D99"]
+	isolated_linux_xfce -> linux_de_xfce_dialogs [color="#E67E2299"]
+	isolated_lib_pymsgbox -> linux_de_xfce_dialogs [color="#7F8C8D99"]
+	isolated_linux_xfce -> linux_de_xfce_keyboard [color="#E67E2299"]
+	isolated_linux_xfce -> linux_de_xfce_pointer [color="#E67E2299"]
+	isolated_lib_mouseinfo -> linux_de_xfce_pointer [color="#7F8C8D99"]
+	isolated_linux_xfce -> linux_de_xfce_screen [color="#E67E2299"]
+	isolated_lib_pyscreeze -> linux_de_xfce_screen [color="#7F8C8D99"]
+	isolated_lib_pygetwindow -> linux_de_xfce_screen [color="#7F8C8D99"]
+	isolated_linux -> linux_dialogs [color="#E67E2299"]
+	isolated_lib_pymsgbox -> linux_dialogs [color="#7F8C8D99"]
+	isolated_linux_wayland -> linux_ds_wayland_backend_real [color="#E67E2299"]
+	isolated_gnome_shell -> linux_ds_wayland_co_gnome_shell_dialogs [color="#E67E2299"]
+	isolated_lib_pymsgbox -> linux_ds_wayland_co_gnome_shell_dialogs [color="#7F8C8D99"]
+	isolated_gnome_shell -> linux_ds_wayland_co_gnome_shell_keyboard [color="#E67E2299"]
+	isolated_lib_pymsgbox -> linux_ds_wayland_co_gnome_shell_keyboard [color="#7F8C8D99"]
+	isolated_gnome_shell -> linux_ds_wayland_co_gnome_shell_pointer [color="#E67E2299"]
+	isolated_lib_pymsgbox -> linux_ds_wayland_co_gnome_shell_pointer [color="#7F8C8D99"]
+	isolated_gnome_shell -> linux_ds_wayland_co_gnome_shell_screen [color="#E67E2299"]
+	isolated_lib_pymsgbox -> linux_ds_wayland_co_gnome_shell_screen [color="#7F8C8D99"]
+	isolated_linux_wayland -> linux_ds_wayland_dialogs [color="#E67E2299"]
+	isolated_lib_pymsgbox -> linux_ds_wayland_dialogs [color="#7F8C8D99"]
+	isolated_linux_wayland -> linux_ds_wayland_keyboard [color="#E67E2299"]
+	isolated_linux_wayland -> linux_ds_wayland_pointer [color="#E67E2299"]
+	isolated_lib_mouseinfo -> linux_ds_wayland_pointer [color="#7F8C8D99"]
+	isolated_linux_wayland -> linux_ds_wayland_screen [color="#E67E2299"]
+	isolated_lib_pyscreeze -> linux_ds_wayland_screen [color="#7F8C8D99"]
+	isolated_lib_pygetwindow -> linux_ds_wayland_screen [color="#7F8C8D99"]
+	isolated_linux_x11 -> linux_ds_x11_dialogs [color="#E67E2299"]
+	isolated_lib_pymsgbox -> linux_ds_x11_dialogs [color="#7F8C8D99"]
+	isolated_linux_x11 -> linux_ds_x11_keyboard [color="#E67E2299"]
+	isolated_linux_x11 -> linux_ds_x11_pointer [color="#E67E2299"]
+	isolated_lib_mouseinfo -> linux_ds_x11_pointer [color="#7F8C8D99"]
+	isolated_linux_x11 -> linux_ds_x11_screen [color="#E67E2299"]
+	isolated_lib_pyscreeze -> linux_ds_x11_screen [color="#7F8C8D99"]
+	isolated_lib_pygetwindow -> linux_ds_x11_screen [color="#7F8C8D99"]
+	isolated_linux -> linux_keyboard [color="#E67E2299"]
+	isolated_linux -> linux_pointer [color="#E67E2299"]
+	isolated_lib_mouseinfo -> linux_pointer [color="#7F8C8D99"]
+	isolated_linux -> linux_screen [color="#E67E2299"]
+	isolated_lib_pyscreeze -> linux_screen [color="#7F8C8D99"]
+	isolated_lib_pygetwindow -> linux_screen [color="#7F8C8D99"]
+	isolated_settings -> log_screenshot_manager_mocked [color="#27AE6099"]
+	isolated_macos -> macos_dialogs [color="#E74C3C99"]
+	isolated_lib_pymsgbox -> macos_dialogs [color="#7F8C8D99"]
+	isolated_macos -> macos_keyboard [color="#E74C3C99"]
+	isolated_macos -> macos_pointer [color="#E74C3C99"]
+	isolated_lib_mouseinfo -> macos_pointer [color="#7F8C8D99"]
+	isolated_macos -> macos_screen [color="#E74C3C99"]
+	isolated_lib_pyscreeze -> macos_screen [color="#7F8C8D99"]
+	isolated_lib_pygetwindow -> macos_screen [color="#7F8C8D99"]
+	controller_manager -> pointer_controller [color="#D4AC0D99"]
+	osal_mocked -> pyautogui_mocked [color="#2E86C199"]
+	pyautogui_real -> pyautogui_real_capkb [color="#2E86C199"]
+	tkinter_window -> pyautogui_real_capkb [color="#2E86C199"]
+	controller_manager -> screen_controller [color="#D4AC0D99"]
+	tkinter_session -> tkinter_window [color="#2E86C199"]
+	isolated_windows -> windows_dialogs [color="#8E44AD99"]
+	isolated_lib_pymsgbox -> windows_dialogs [color="#7F8C8D99"]
+	isolated_windows -> windows_keyboard [color="#8E44AD99"]
+	isolated_windows -> windows_pointer [color="#8E44AD99"]
+	isolated_lib_mouseinfo -> windows_pointer [color="#7F8C8D99"]
+	isolated_windows -> windows_screen [color="#8E44AD99"]
+	isolated_lib_pyscreeze -> windows_screen [color="#7F8C8D99"]
+	isolated_lib_pygetwindow -> windows_screen [color="#7F8C8D99"]
+	__autouse__ [label="All tests (autouse)" color="#C0392B" fillcolor="#F5B7B1" fontname="Helvetica Bold" fontsize=11 shape=doublecircle style=filled]
+	isolated_test -> __autouse__ [color="#C0392B" style=dashed]
+	__used__ [label="✔ Used in tests" color="#27AE60" fillcolor="#82E0AA" fontname="Helvetica Bold" fontsize=11 shape=doublecircle style=filled]
+	controller_manager -> __used__ [color="#27AE60" style=dashed]
+	dialogs_controller -> __used__ [color="#27AE60" style=dashed]
+	failsafe_manager_mocked -> __used__ [color="#27AE60" style=dashed]
+	failsafe_manager_real -> __used__ [color="#27AE60" style=dashed]
+	gnome_shell_backend_real -> __used__ [color="#27AE60" style=dashed]
+	isolated_linux -> __used__ [color="#27AE60" style=dashed]
+	isolated_macos -> __used__ [color="#27AE60" style=dashed]
+	isolated_settings -> __used__ [color="#27AE60" style=dashed]
+	isolated_singleton -> __used__ [color="#27AE60" style=dashed]
+	isolated_windows -> __used__ [color="#27AE60" style=dashed]
+	keyboard_controller -> __used__ [color="#27AE60" style=dashed]
+	linux_de_gnome_pointer -> __used__ [color="#27AE60" style=dashed]
+	linux_de_kde_pointer -> __used__ [color="#27AE60" style=dashed]
+	linux_de_xfce_pointer -> __used__ [color="#27AE60" style=dashed]
+	linux_dialogs -> __used__ [color="#27AE60" style=dashed]
+	linux_ds_wayland_backend_real -> __used__ [color="#27AE60" style=dashed]
+	linux_ds_wayland_co_gnome_shell_dialogs -> __used__ [color="#27AE60" style=dashed]
+	linux_ds_wayland_co_gnome_shell_keyboard -> __used__ [color="#27AE60" style=dashed]
+	linux_ds_wayland_co_gnome_shell_pointer -> __used__ [color="#27AE60" style=dashed]
+	linux_ds_wayland_co_gnome_shell_screen -> __used__ [color="#27AE60" style=dashed]
+	linux_ds_wayland_keyboard -> __used__ [color="#27AE60" style=dashed]
+	linux_ds_wayland_pointer -> __used__ [color="#27AE60" style=dashed]
+	linux_ds_x11_keyboard -> __used__ [color="#27AE60" style=dashed]
+	linux_ds_x11_pointer -> __used__ [color="#27AE60" style=dashed]
+	linux_ds_x11_screen -> __used__ [color="#27AE60" style=dashed]
+	linux_keyboard -> __used__ [color="#27AE60" style=dashed]
+	linux_pointer -> __used__ [color="#27AE60" style=dashed]
+	linux_screen -> __used__ [color="#27AE60" style=dashed]
+	log_screenshot_manager_mocked -> __used__ [color="#27AE60" style=dashed]
+	macos_dialogs -> __used__ [color="#27AE60" style=dashed]
+	macos_keyboard -> __used__ [color="#27AE60" style=dashed]
+	macos_pointer -> __used__ [color="#27AE60" style=dashed]
+	macos_screen -> __used__ [color="#27AE60" style=dashed]
+	osal_mocked -> __used__ [color="#27AE60" style=dashed]
+	pause_manager_mocked -> __used__ [color="#27AE60" style=dashed]
+	pause_manager_real -> __used__ [color="#27AE60" style=dashed]
+	pointer_controller -> __used__ [color="#27AE60" style=dashed]
+	pyautogui_mocked -> __used__ [color="#27AE60" style=dashed]
+	pyautogui_real -> __used__ [color="#27AE60" style=dashed]
+	pyautogui_real_capkb -> __used__ [color="#27AE60" style=dashed]
+	screen_controller -> __used__ [color="#27AE60" style=dashed]
+	tweening_manager_mocked -> __used__ [color="#27AE60" style=dashed]
+	tweening_manager_mocked_no_pytweening -> __used__ [color="#27AE60" style=dashed]
+	tweening_manager_real -> __used__ [color="#27AE60" style=dashed]
+	windows_dialogs -> __used__ [color="#27AE60" style=dashed]
+	windows_keyboard -> __used__ [color="#27AE60" style=dashed]
+	windows_pointer -> __used__ [color="#27AE60" style=dashed]
+	windows_screen -> __used__ [color="#27AE60" style=dashed]
+	subgraph cluster_legend {
+		color="#AAAAAA" fontname="Helvetica Bold" fontsize=10 label=Legend style=rounded
+		leg_0 [label=common color="#27AE60" fillcolor="#A9DFBF" fontsize=9 shape=box style=filled]
+		leg_1 [label=controller color="#D4AC0D" fillcolor="#F9E79F" fontsize=9 shape=box style=filled]
+		leg_2 [label=core color="#2E86C1" fillcolor="#AED6F1" fontsize=9 shape=box style=filled]
+		leg_3 [label=lib color="#7F8C8D" fillcolor="#D5DBDB" fontsize=9 shape=box style=filled]
+		leg_4 [label=osal color="#E67E22" fillcolor="#FDEBD0" fontsize=9 shape=box style=filled]
+		leg_5 [label="osal/linux" color="#E67E22" fillcolor="#FAD7A0" fontsize=9 shape=box style=filled]
+		leg_6 [label="osal/macos" color="#E74C3C" fillcolor="#FADBD8" fontsize=9 shape=box style=filled]
+		leg_7 [label="osal/windows" color="#8E44AD" fillcolor="#D7BDE2" fontsize=9 shape=box style=filled]
+		leg_8 [label=utils color="#9B59B6" fillcolor="#E8DAEF" fontsize=9 shape=box style=filled]
+		leg_unknown [label="?? unknown ??" color="#999999" fillcolor="#EAECEE" fontcolor="#999999" fontsize=9 shape=box style="filled,dashed"]
+		leg_orphan [label="-- orphan --" color="#E74C3C" fillcolor="#FADBD8" fontsize=9 shape=box style="filled,bold"]
+		leg_autouse [label="!! autouse !!" color="#FC392B" fillcolor="#F5B7B1" fontsize=9 shape=box style="filled,bold"]
+	}
+}
