@@ -19,7 +19,7 @@ class TestGetLinuxInfo:
     @patch("sys.platform", "linux")
     @patch.dict("os.environ", {
         "XDG_SESSION_TYPE": "wayland",
-        "XDG_CURRENT_DESKTOP": "GNOME",
+        "XDG_SESSION_DESKTOP": "GNOME",
     })
     @patch("subprocess.run")
     def test_linux_with_gnome_shell(self, mock_run):
@@ -34,7 +34,7 @@ class TestGetLinuxInfo:
             "linux_desktop": "gnome",
             "linux_compositor": "gnome_shell",
         }
-        mock_run.assert_called_once_with(
+        mock_run.assert_called_with(
             ["pgrep", "-x", "gnome-shell"],
             capture_output=True
         )
@@ -42,7 +42,7 @@ class TestGetLinuxInfo:
     @patch("sys.platform", "linux")
     @patch.dict("os.environ", {
         "XDG_SESSION_TYPE": "wayland",
-        "XDG_CURRENT_DESKTOP": "KDE",
+        "XDG_SESSION_DESKTOP": "KDE",
     })
     @patch("subprocess.run")
     def test_linux_with_kwin_wayland(self, mock_run):
@@ -56,7 +56,7 @@ class TestGetLinuxInfo:
 
         result = get_linux_info()
 
-        assert result["linux_compositor"] == "kwin_wayland"
+        assert result["linux_compositor"] == "kwin"
         assert result["linux_desktop"] == "kde"
 
     @patch("sys.platform", "linux")
@@ -112,6 +112,20 @@ class TestGetLinuxInfo:
         """Returns empty dict on non-Linux platforms."""
         result = get_linux_info()
         assert result == {}
+
+    @patch("sys.platform", "linux")
+    @patch.dict("os.environ", {
+        "XDG_SESSION_DESKTOP": "xubuntu"
+    })
+    @patch("subprocess.run")
+    def test_linux_de_specific_fallback(self, mock_run):
+        """Returns fallback value for specific DE value (e.g. "xubuntu" => "xfce")."""
+        # All pgrep calls fail
+        mock_run.return_value = MagicMock(returncode=1)
+
+        result = get_linux_info()
+
+        assert result["linux_desktop"] == "xfce"
 
 
 class TestGetWin32Info:

@@ -15,7 +15,7 @@ def get_linux_info() -> dict[str, str]:
     def _get_compositor() -> str:
         compositors = {
             "gnome-shell": "gnome_shell",
-            "kwin_wayland": "kwin_wayland",
+            "kwin_wayland": "kwin",
             "sway": "sway",
             "weston": "weston",
             "wayfire": "wayfire",
@@ -31,11 +31,21 @@ def get_linux_info() -> dict[str, str]:
 
     display_env = os.environ.get("XDG_SESSION_TYPE", "unknown").lower()
 
+    # Get Desktop Environment, in lower case, then :
+    # - Remove prefix "x-" (e.g. "X-Cinnamon" => "cinnamon")
+    # - Split on ":" and get the last part (e.g. "ubuntu:GNOME" => "gnome")
     desktop_env = (
-        os.environ.get("XDG_CURRENT_DESKTOP")
+        os.environ.get("XDG_SESSION_DESKTOP")
+        or os.environ.get("XDG_CURRENT_DESKTOP")
         or os.environ.get("DESKTOP_SESSION")
         or "unknown"
-    ).lower()
+    ).lower().removeprefix("x-").split(":")[-1]
+    # Converts specific Desktop Environment to standrad name (e.g. "xubuntu" => "xfce")
+    de_fallback = {
+        "xubuntu": "xfce",
+    }
+    if desktop_env in de_fallback:
+        desktop_env = de_fallback[desktop_env]
 
     return {
         "linux_display_server": display_env,

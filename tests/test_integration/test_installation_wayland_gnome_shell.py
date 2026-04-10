@@ -4,10 +4,10 @@ import subprocess
 
 import pytest
 
-from tests.fixtures.helpers import is_linux_compositor_gnome_shell
+from tests.fixtures.helpers import is_linux_wayland_compositor_gnome_shell
 
 
-if not is_linux_compositor_gnome_shell():
+if not is_linux_wayland_compositor_gnome_shell():
     pytest.skip("Requires Wayland GNOME Shell compositor", allow_module_level=True)
 
 

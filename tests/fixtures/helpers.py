@@ -4,6 +4,9 @@
 from pyautogui2.osal.platform_info import get_platform_info
 
 
+# ==========
+# Detect OS
+# ==========
 def is_linux():
     """Check if running on Linux."""
     return get_platform_info().get("os_id") == "linux"
@@ -19,6 +22,9 @@ def is_macos():
     return get_platform_info().get("os_id") == "darwin"
 
 
+# ============================
+# Detect Linux Display Server
+# ============================
 def is_linux_ds_x11():
     """Check if running X11 display server."""
     return is_linux() and get_platform_info().get("linux_display_server") == "x11"
@@ -29,11 +35,23 @@ def is_linux_ds_wayland():
     return is_linux() and get_platform_info().get("linux_display_server") == "wayland"
 
 
-def is_linux_compositor_gnome_shell():
+# ========================
+# Detect Linux Compositor
+# ========================
+def is_linux_wayland_compositor_gnome_shell():
     """Check if running Wayland GNOME Shell compositor."""
     return is_linux_ds_wayland() and get_platform_info().get("linux_compositor") == "gnome_shell"
 
+# =================================
+# Detect Linux Desktop Environment
+# =================================
 
 def is_linux_de_gnome():
     """Check if running GNOME desktop environment."""
     return is_linux() and get_platform_info().get("linux_desktop") == "gnome"
+
+
+def is_linux_de_xfce():
+    """Check if running XFCE desktop environment."""
+    return is_linux() and get_platform_info().get("linux_desktop") == "xfce"
+
