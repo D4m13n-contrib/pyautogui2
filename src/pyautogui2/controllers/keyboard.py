@@ -403,4 +403,4 @@ class KeyboardController(AbstractKeyboardController):
             )
 
         with self._osal.codepoint_ctx() as ctx:
-            ctx.type_codepoint_value(f"{codepoint_value:04X}")
+            ctx.type_codepoint_value(f"{codepoint_value:04x}")

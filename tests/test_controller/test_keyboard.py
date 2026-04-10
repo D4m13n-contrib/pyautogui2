@@ -47,7 +47,7 @@ class TestKeyboardPressKey:
         """Test that invalid key fallback to codepoint."""
         keyboard_controller._osal.key_is_mapped.return_value = False
         keyboard_controller.press_key("é")
-        keyboard_controller._osal.type_codepoint_value.assert_called_with("00E9")
+        keyboard_controller._osal.type_codepoint_value.assert_called_with("00e9")
 
     def test_valid_press_calls_down_up_correct_times(self, keyboard_controller):
         """Test that multiple presses call down/up the correct number of times."""
@@ -147,7 +147,7 @@ class TestKeyboardWrite:
 
         keyboard_controller._osal.mocks.assert_has_calls([
             call.key_is_mapped("🎉"),
-            call.type_codepoint_value("1F389"),
+            call.type_codepoint_value("1f389"),
         ])
 
     def test_write_potential_dead_key(self, keyboard_controller):
@@ -157,7 +157,7 @@ class TestKeyboardWrite:
         text = "".join(KeyboardController.POTENTIALLY_DEAD_KEYS)
         keyboard_controller.write(text)
 
-        call_dead_keys = [call.type_codepoint_value(f"{ord(k):04X}") for k in KeyboardController.POTENTIALLY_DEAD_KEYS]
+        call_dead_keys = [call.type_codepoint_value(f"{ord(k):04x}") for k in KeyboardController.POTENTIALLY_DEAD_KEYS]
         keyboard_controller._osal.mocks.assert_has_calls(call_dead_keys)
 
     def test_write_with_interval(self, keyboard_controller):
@@ -390,33 +390,33 @@ class TestKeyboardCodepoint:
     def test_codepoint_ctx_enters_and_exits(self, keyboard_controller):
         """Test codepoint context manager calls OSAL."""
         keyboard_controller.codepoint("U+00E9")
-        keyboard_controller._osal.type_codepoint_value.assert_called_with("00E9")
+        keyboard_controller._osal.type_codepoint_value.assert_called_with("00e9")
 
     def test_codepoint_without_prefix(self, keyboard_controller):
         """Test codepoint without U+ prefix."""
         keyboard_controller.codepoint("00E9")
-        keyboard_controller._osal.type_codepoint_value.assert_called_with("00E9")
+        keyboard_controller._osal.type_codepoint_value.assert_called_with("00e9")
 
     def test_codepoint_lowercase(self, keyboard_controller):
         """Test codepoint with lowercase hex."""
         keyboard_controller.codepoint("u+00e9")
         # Should normalize to uppercase
-        keyboard_controller._osal.type_codepoint_value.assert_called_with("00E9")
+        keyboard_controller._osal.type_codepoint_value.assert_called_with("00e9")
 
     def test_codepoint_emoji(self, keyboard_controller):
         """Test codepoint for emoji."""
         keyboard_controller.codepoint("U+1F389")  # 🎉
-        keyboard_controller._osal.type_codepoint_value.assert_called_with("1F389")
+        keyboard_controller._osal.type_codepoint_value.assert_called_with("1f389")
 
     def test_codepoint_int(self, keyboard_controller):
         """Test codepoint from int."""
         keyboard_controller.codepoint(0x00E9)
-        keyboard_controller._osal.type_codepoint_value.assert_called_with("00E9")
+        keyboard_controller._osal.type_codepoint_value.assert_called_with("00e9")
 
     def test_codepoint_hex_string(self, keyboard_controller):
         """Test codepoint from hex string."""
         keyboard_controller.codepoint("\\xe9")
-        keyboard_controller._osal.type_codepoint_value.assert_called_with("00E9")
+        keyboard_controller._osal.type_codepoint_value.assert_called_with("00e9")
 
     def test_codepoint_unicode_string(self, keyboard_controller):
         """Test codepoint from unicode string."""
