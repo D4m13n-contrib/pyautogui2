@@ -4,7 +4,7 @@ This module detects the active Wayland compositor (backend) such as GNOME Shell,
 and dynamically composes the final Wayland*Part classes by combining
 Wayland base parts with compositor-specific parts.
 """
-from typing import Any
+from typing import Any, Optional
 
 from .compositor import get_wayland_compositor_osal_parts
 
@@ -13,7 +13,7 @@ from .compositor import get_wayland_compositor_osal_parts
 # Class factory for Wayland + backend composition
 # ---------------------------------------------------------------------------
 
-def _make_wayland_part(base_part: type[Any], backend_part: type[Any]) -> type[Any]:
+def _make_wayland_part(base_part: Optional[type[Any]], backend_part: Optional[type[Any]]) -> Optional[type[Any]]:
     """Create a dynamically composed Wayland*Part class
     that includes both Wayland and compositor-specific behavior.
 
@@ -24,16 +24,27 @@ def _make_wayland_part(base_part: type[Any], backend_part: type[Any]) -> type[An
     Returns:
         The dynamically composed class (e.g. WaylandPointerPartWithGnomeShell).
     """
-    name = base_part.__name__.replace("Part", "")
-    backend_name = backend_part.__name__.replace("Part", "")
-    cls_name = f"{name}{backend_name}Part"
+    cls_parts = []
+    name = ""
+
+    if base_part is not None:
+        cls_parts.append(base_part)
+        name += base_part.__name__.replace("Part", "")
+    if backend_part is not None:
+        cls_parts.append(backend_part)
+        name += backend_part.__name__.replace("Part", "")
+
+    if len(cls_parts) == 0:
+        return None
 
     cls = type(
-        cls_name,
-        (base_part, backend_part),
+        f"{name}Part",
+        tuple(cls_parts),
         {
-            "BACKEND_ID": f"{base_part.__name__}, {backend_part.__name__}",
-            "__doc__": f"{base_part.__name__} composed with {backend_part.__name__} "
+            "BACKEND_ID": ", ".join(
+                getattr(b, "BACKEND_ID", b.__name__) for b in cls_parts
+            ),
+            "__doc__": f"Composition: {' with '.join(b.__name__ for b in cls_parts)} "
                        f"to support Wayland compositor backends.",
         },
     )
@@ -56,22 +67,20 @@ def get_wayland_osal_parts() -> dict[str, type[Any]]:
             ...
         }
     """
-    backend_parts = get_wayland_compositor_osal_parts()
-
     # Required to be know by locals() calls below
-    from .dialogs import WaylandDialogsPart  # noqa: F401
     from .keyboard import WaylandKeyboardPart  # noqa: F401
     from .pointer import WaylandPointerPart  # noqa: F401
-    from .screen import WaylandScreenPart  # noqa: F401
 
     wayland_parts = {
         "pointer": WaylandPointerPart,
         "keyboard": WaylandKeyboardPart,
-        "screen": WaylandScreenPart,
-        "dialogs": WaylandDialogsPart,
     }
 
-    return {
-        name: _make_wayland_part(wayland_parts[name], backend_parts[name])
-        for name in wayland_parts
+    backend_parts = get_wayland_compositor_osal_parts()
+
+    composed_parts = {
+        name: _make_wayland_part(wayland_parts.get(name), backend_parts.get(name))
+        for name in ("pointer", "keyboard", "screen", "dialogs")
     }
+
+    return {k:v for k,v in composed_parts.items() if v is not None}

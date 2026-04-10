@@ -52,6 +52,78 @@ class TestComposeLinuxClass:
 
         assert result.BACKEND_ID == "MockBasePointerPart, MockDEPointerPart, MockDSPointerPart"
 
+    def test_compose_without_de(self, isolated_linux):
+        """_compose_linux_class() without DE part should success."""
+        class FullBasePart(AbstractPointer):
+            BACKEND_ID = "FullBasePart"
+
+            def button_up(self): pass
+            def button_down(self): pass
+            def click(self): pass
+            def drag_to(self): pass
+            def get_pos(self): pass
+            def get_primary_button(self): pass
+            def mouse_info(self): pass
+            def move_to(self): pass
+            def scroll(self): pass
+
+        result = _compose_linux_class(
+            "pointer",
+            FullBasePart,
+            None,
+            MockDSPointerPart
+        )
+
+        assert result.BACKEND_ID == "FullBasePart, MockDSPointerPart"
+
+    def test_compose_without_ds(self, isolated_linux):
+        """_compose_linux_class() without DS part should success."""
+        class FullBasePart(AbstractPointer):
+            BACKEND_ID = "FullBasePart"
+
+            def button_up(self): pass
+            def button_down(self): pass
+            def click(self): pass
+            def drag_to(self): pass
+            def get_pos(self): pass
+            def get_primary_button(self): pass
+            def mouse_info(self): pass
+            def move_to(self): pass
+            def scroll(self): pass
+
+        result = _compose_linux_class(
+            "pointer",
+            FullBasePart,
+            MockDEPointerPart,
+            None
+        )
+
+        assert result.BACKEND_ID == "FullBasePart, MockDEPointerPart"
+
+    def test_compose_without_de_nor_ds(self, isolated_linux):
+        """_compose_linux_class() without DE nor DS parts should success."""
+        class FullBasePart(AbstractPointer):
+            BACKEND_ID = "FullBasePart"
+
+            def button_up(self): pass
+            def button_down(self): pass
+            def click(self): pass
+            def drag_to(self): pass
+            def get_pos(self): pass
+            def get_primary_button(self): pass
+            def mouse_info(self): pass
+            def move_to(self): pass
+            def scroll(self): pass
+
+        result = _compose_linux_class(
+            "pointer",
+            FullBasePart,
+            None,
+            None
+        )
+
+        assert result.BACKEND_ID == "FullBasePart"
+
     def test_compose_generates_backend_id_uses_class_name_if_no_backend_id(self, isolated_linux):
         """_compose_linux_class() uses __name__ if part has no BACKEND_ID."""
         class PartWithoutBackendId:

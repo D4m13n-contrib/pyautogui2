@@ -1,13 +1,7 @@
-"""XfcePointerPart - Desktop part for all Linux pointers.
-"""
-
-from ..gnome.pointer import GnomePointerPart
+"""XFCE pointer part."""
+from .._shared.pointer import GSettingsPointerPart
 
 
-class XfcePointerPart(GnomePointerPart):
-    """XFCE desktop pointer configuration handler.
-
-    Inherits GNOME's left-handed detection logic as XFCE uses compatible
-    configuration mechanisms. No XFCE-specific pointer behavior required.
-    """
+class XfcePointerPart(GSettingsPointerPart):
+    """XFCE pointer part, uses GSettings backend."""
     pass

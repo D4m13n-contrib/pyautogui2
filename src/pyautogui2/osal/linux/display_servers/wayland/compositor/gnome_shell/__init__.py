@@ -8,9 +8,7 @@ via D-Bus to provide input and screen information.
 """
 
 def get_gnome_shell_osal_parts() -> dict[str, type]:
-    """Return GNOME Shell-specific OSAL parts for Wayland integration.
-    """
-    from .dialogs import GnomeShellDialogsPart
+    """Return GNOME Shell-specific OSAL parts for Wayland integration."""
     from .keyboard import GnomeShellKeyboardPart
     from .pointer import GnomeShellPointerPart
     from .screen import GnomeShellScreenPart
@@ -19,5 +17,4 @@ def get_gnome_shell_osal_parts() -> dict[str, type]:
         "pointer": GnomeShellPointerPart,
         "keyboard": GnomeShellKeyboardPart,
         "screen": GnomeShellScreenPart,
-        "dialogs": GnomeShellDialogsPart,
     }

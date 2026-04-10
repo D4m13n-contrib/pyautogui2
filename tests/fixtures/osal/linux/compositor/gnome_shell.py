@@ -85,10 +85,9 @@ def linux_ds_wayland_co_gnome_shell_screen(isolated_gnome_shell, isolated_lib_py
     from pyautogui2.osal.linux.display_servers.wayland.compositor.gnome_shell.screen import (
         GnomeShellScreenPart,
     )
-    from pyautogui2.osal.linux.display_servers.wayland.screen import WaylandScreenPart
     from tests.mocks.osal.linux.mock_parts import MockBaseScreenPart, MockDEScreenPart
 
-    wayland_with_compositor = _make_wayland_part(WaylandScreenPart, GnomeShellScreenPart)
+    wayland_with_compositor = _make_wayland_part(None, GnomeShellScreenPart)
     cls_parts = [MockBaseScreenPart, MockDEScreenPart, wayland_with_compositor]
     attr_mocks = {
         "_backend": MockGnomeShellBackend(),
@@ -113,10 +112,9 @@ def linux_ds_wayland_co_gnome_shell_dialogs(isolated_gnome_shell, isolated_lib_p
     from pyautogui2.osal.linux.display_servers.wayland.compositor.gnome_shell.dialogs import (
         GnomeShellDialogsPart,
     )
-    from pyautogui2.osal.linux.display_servers.wayland.dialogs import WaylandDialogsPart
     from tests.mocks.osal.linux.mock_parts import MockBaseDialogsPart, MockDEDialogsPart
 
-    wayland_with_compositor = _make_wayland_part(WaylandDialogsPart, GnomeShellDialogsPart)
+    wayland_with_compositor = _make_wayland_part(None, GnomeShellDialogsPart)
     cls_parts = [MockBaseDialogsPart, MockDEDialogsPart, wayland_with_compositor]
     attr_mocks = {
         "_backend": MockGnomeShellBackend(),

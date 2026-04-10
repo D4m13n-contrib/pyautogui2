@@ -5,7 +5,7 @@ by composing the Linux*Part base classes with platform-specific parts
 provided by the detected display server (X11, Wayland, etc.)
 and desktop environment (GNOME, KDE, etc.).
 """
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Optional, cast
 
 from ...utils.exceptions import PyAutoGUIException
 from ..abstract_cls import OSAL
@@ -33,8 +33,8 @@ if TYPE_CHECKING:
 
 def _compose_linux_class(name: str,
                          base_part: type["AbstractOSAL"],
-                         desktop_part: type["AbstractOSAL"],
-                         display_part: type["AbstractOSAL"]) -> type["AbstractOSAL"]:
+                         desktop_part: Optional[type["AbstractOSAL"]],
+                         display_part: Optional[type["AbstractOSAL"]]) -> type["AbstractOSAL"]:
     """Dynamically compose a Linux* class from the given parts.
 
     This function is used:
@@ -48,16 +48,20 @@ def _compose_linux_class(name: str,
         display_part: display server class (e.g. WaylandKeyboardPart)
     """
     cls_name = f"Linux{name.capitalize()}"
-    cls_bases = (base_part, desktop_part, display_part)
+    cls_parts = [base_part]
+    if desktop_part is not None:
+        cls_parts.append(desktop_part)
+    if display_part is not None:
+        cls_parts.append(display_part)
     cls: type[AbstractOSAL] = type(
         cls_name,
-        cls_bases,
+        tuple(cls_parts),
         {
             "BACKEND_ID": ", ".join(
-                getattr(b, "BACKEND_ID", b.__name__) for b in cls_bases
+                getattr(b, "BACKEND_ID", b.__name__) for b in cls_parts
             ),
             "__doc__": f"Concrete Linux {name.capitalize()} implementation "
-                       f"({cls_bases[0].__name__}, {cls_bases[1].__name__}, {cls_bases[2].__name__}).",
+                       f"({', '.join(b.__name__ for b in cls_parts)}).",
         },
     )
 
@@ -83,26 +87,17 @@ def _make_class(name: str) -> type["AbstractOSAL"]:
         - The display server-specific part
         - The desktop environment-specific part
     """
-    desktop_parts = get_desktop_osal_parts()
-    display_parts = get_display_server_osal_parts()
-
     # Retrieve the Linux*Part base class dynamically
     base_part_name = f"Linux{name.capitalize()}Part"
     base_part = globals().get(base_part_name)
     if base_part is None:
         raise RuntimeError(f"Missing base part class: {base_part_name}")
 
-    # Retrieve matching parts from both loaders
-    desktop_part = desktop_parts.get(name)
-    display_part = display_parts.get(name)
+    # Retrieve the Desktop part
+    desktop_part = get_desktop_osal_parts().get(name)
 
-    if not desktop_part or not display_part:
-        missing = []
-        if not desktop_part:
-            missing.append(f"desktops.{name}")
-        if not display_part:
-            missing.append(f"display_servers.{name}")
-        raise RuntimeError(f"Missing OSAL parts for {', '.join(missing)}")
+    # Retrieve the Display Server part
+    display_part = get_display_server_osal_parts().get(name)
 
     return _compose_linux_class(name, base_part, desktop_part, display_part)
 

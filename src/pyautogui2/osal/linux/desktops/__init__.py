@@ -11,8 +11,6 @@ def get_desktop_osal_parts() -> dict[str, type]:
 
     if desktop == "gnome":
         from .gnome import get_gnome_osal_parts as _get_osal_parts
-    # elif desktop == "kde":
-    #     from .kde import get_kde_osal_parts as _get_osal_parts
     elif desktop == "xfce":
         from .xfce import get_xfce_osal_parts as _get_osal_parts
     else:

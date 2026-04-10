@@ -15,11 +15,6 @@ class TestGnomeShellScreenPartInit:
         )
         assert isinstance(linux_ds_wayland_co_gnome_shell_screen, GnomeShellScreenPart)
 
-    def test_inherits_from_wayland_screen(self, linux_ds_wayland_co_gnome_shell_screen):
-        """Should inherit from WaylandScreenPart."""
-        from pyautogui2.osal.linux.display_servers.wayland.screen import WaylandScreenPart
-        assert isinstance(linux_ds_wayland_co_gnome_shell_screen, WaylandScreenPart)
-
     def test_backend_property_lazy_init(self, linux_ds_wayland_co_gnome_shell_screen):
         """Backend property instantiates GnomeShellBackend on first access."""
         linux_ds_wayland_co_gnome_shell_screen._backend = None  # Reset to None

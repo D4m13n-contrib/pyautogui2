@@ -22,43 +22,21 @@ from pyautogui2.osal.linux.display_servers import get_display_server_osal_parts
 class TestDesktopLoader:
     """Tests for get_desktop_osal_parts() loader."""
 
-    @patch("pyautogui2.osal.linux.desktops.get_linux_info", return_value={"linux_desktop": "gnome"})
-    def test_get_desktop_parts_gnome(self, mock_detect, isolated_linux):
-        """get_desktop_osal_parts() loads GNOME parts."""
-        parts = get_desktop_osal_parts()
+    @pytest.mark.parametrize("test_desktop, test_cls_name", [
+        ("gnome", "GnomePointerPart"),
+        ("xfce", "XfcePointerPart"),
+    ])
+    def test_get_desktop_parts_gnome(self, test_desktop, test_cls_name, isolated_linux):
+        """get_desktop_osal_parts() loads parts."""
+        with patch("pyautogui2.osal.linux.desktops.get_linux_info", return_value={"linux_desktop": test_desktop}):
+            parts = get_desktop_osal_parts()
 
-        assert "pointer" in parts
-        assert "keyboard" in parts
-        assert "screen" in parts
-        assert "dialogs" in parts
+            assert "pointer" in parts
+            assert parts["pointer"].__name__ == test_cls_name
 
-        # Verify class names
-        assert parts["pointer"].__name__ == "GnomePointerPart"
-        assert parts["keyboard"].__name__ == "GnomeKeyboardPart"
-        assert parts["screen"].__name__ == "GnomeScreenPart"
-        assert parts["dialogs"].__name__ == "GnomeDialogsPart"
-
-    @patch("pyautogui2.osal.linux.desktops.get_linux_info", return_value={"linux_desktop": "xfce"})
-    def test_get_desktop_parts_xfce(self, mock_detect, isolated_linux):
-        """get_desktop_osal_parts() loads XFCE parts."""
-        parts = get_desktop_osal_parts()
-
-        assert "pointer" in parts
-        assert "keyboard" in parts
-        assert "screen" in parts
-        assert "dialogs" in parts
-
-        # Verify class names
-        assert parts["pointer"].__name__ == "XfcePointerPart"
-        assert parts["keyboard"].__name__ == "XfceKeyboardPart"
-        assert parts["screen"].__name__ == "XfceScreenPart"
-        assert parts["dialogs"].__name__ == "XfceDialogsPart"
-
-    @patch("pyautogui2.osal.linux.desktops.get_linux_info", return_value={"linux_desktop": "kde"})
-    def test_get_desktop_parts_kde_raises_unsupported(self, mock_detect, isolated_linux):
-        """get_desktop_osal_parts() raises RuntimeError for unsupported desktop."""
-        with pytest.raises(RuntimeError, match="Unsupported desktop: kde"):
-            get_desktop_osal_parts()
+            assert "keyboard" not in parts
+            assert "screen" not in parts
+            assert "dialogs" not in parts
 
     @patch("pyautogui2.osal.linux.desktops.get_linux_info", return_value={"linux_desktop": "unknown"})
     def test_get_desktop_parts_unknown_raises_error(self, mock_detect, isolated_linux):
@@ -79,7 +57,7 @@ class TestDisplayServerLoader:
         assert "pointer" in parts
         assert "keyboard" in parts
         assert "screen" in parts
-        assert "dialogs" in parts
+        assert "dialogs" not in parts
 
         # Verify composed names (Wayland + compositor)
         assert "Wayland" in parts["pointer"].__name__
@@ -93,13 +71,12 @@ class TestDisplayServerLoader:
         assert "pointer" in parts
         assert "keyboard" in parts
         assert "screen" in parts
-        assert "dialogs" in parts
+        assert "dialogs" not in parts
 
         # Verify class names
         assert parts["pointer"].__name__ == "X11PointerPart"
         assert parts["keyboard"].__name__ == "X11KeyboardPart"
         assert parts["screen"].__name__ == "X11ScreenPart"
-        assert parts["dialogs"].__name__ == "X11DialogsPart"
 
     @patch("pyautogui2.osal.linux.display_servers.get_linux_info", return_value={"linux_display_server": "unsupported_DS"})
     def test_get_display_server_parts_unsupported_raises_error(self, mock_detect, isolated_linux):
@@ -124,13 +101,12 @@ class TestWaylandCompositor:
         assert "pointer" in parts
         assert "keyboard" in parts
         assert "screen" in parts
-        assert "dialogs" in parts
+        assert "dialogs" not in parts
 
         # Verify class names
         assert parts["pointer"].__name__ == "GnomeShellPointerPart"
         assert parts["keyboard"].__name__ == "GnomeShellKeyboardPart"
         assert parts["screen"].__name__ == "GnomeShellScreenPart"
-        assert parts["dialogs"].__name__ == "GnomeShellDialogsPart"
 
     @patch("pyautogui2.osal.linux.display_servers.wayland.compositor.get_linux_info",
            return_value={"linux_compositor": "unsupported_compositor"})
@@ -156,7 +132,7 @@ class TestWaylandPartComposition:
         parts = get_wayland_osal_parts()
 
         # Verify all parts are composed
-        for name in ("pointer", "keyboard", "screen", "dialogs"):
+        for name in ("pointer", "keyboard"):
             assert name in parts
             cls = parts[name]
 
@@ -197,11 +173,8 @@ class TestIndividualGetters:
 
         parts = get_gnome_osal_parts()
 
-        assert len(parts) == 4
+        assert len(parts) == 1
         assert parts["pointer"].__name__ == "GnomePointerPart"
-        assert parts["keyboard"].__name__ == "GnomeKeyboardPart"
-        assert parts["screen"].__name__ == "GnomeScreenPart"
-        assert parts["dialogs"].__name__ == "GnomeDialogsPart"
 
     def test_get_kde_osal_parts(self, isolated_linux):
         """get_kde_osal_parts() returns correct KDE parts."""
@@ -221,11 +194,8 @@ class TestIndividualGetters:
 
         parts = get_xfce_osal_parts()
 
-        assert len(parts) == 4
+        assert len(parts) == 1
         assert parts["pointer"].__name__ == "XfcePointerPart"
-        assert parts["keyboard"].__name__ == "XfceKeyboardPart"
-        assert parts["screen"].__name__ == "XfceScreenPart"
-        assert parts["dialogs"].__name__ == "XfceDialogsPart"
 
     def test_get_x11_osal_parts(self, isolated_linux):
         """get_x11_osal_parts() returns correct X11 parts."""
@@ -233,11 +203,10 @@ class TestIndividualGetters:
 
         parts = get_x11_osal_parts()
 
-        assert len(parts) == 4
+        assert len(parts) == 3
         assert parts["pointer"].__name__ == "X11PointerPart"
         assert parts["keyboard"].__name__ == "X11KeyboardPart"
         assert parts["screen"].__name__ == "X11ScreenPart"
-        assert parts["dialogs"].__name__ == "X11DialogsPart"
 
     def test_get_gnome_shell_osal_parts(self, isolated_linux):
         """get_gnome_shell_osal_parts() returns correct GNOME Shell parts."""
@@ -247,8 +216,7 @@ class TestIndividualGetters:
 
         parts = get_gnome_shell_osal_parts()
 
-        assert len(parts) == 4
+        assert len(parts) == 3
         assert parts["pointer"].__name__ == "GnomeShellPointerPart"
         assert parts["keyboard"].__name__ == "GnomeShellKeyboardPart"
         assert parts["screen"].__name__ == "GnomeShellScreenPart"
-        assert parts["dialogs"].__name__ == "GnomeShellDialogsPart"
