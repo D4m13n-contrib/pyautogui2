@@ -5,11 +5,11 @@ correct data types, regardless of the compositor implementation.
 """
 import pytest
 
-from tests.fixtures.helpers import is_linux_ds_wayland
+from tests.fixtures.helpers import is_linux_wayland_compositor_gnome_shell
 
 
-if not is_linux_ds_wayland():
-    pytest.skip("Requires Wayland platform", allow_module_level=True)
+if not is_linux_wayland_compositor_gnome_shell():
+    pytest.skip("Requires Wayland with GNOME Shell platform", allow_module_level=True)
 
 
 class TestWaylandBackendBasics:

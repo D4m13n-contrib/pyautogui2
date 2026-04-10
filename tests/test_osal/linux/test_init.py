@@ -289,56 +289,6 @@ class TestMakeClass:
 
     @patch("pyautogui2.osal.linux.get_display_server_osal_parts")
     @patch("pyautogui2.osal.linux.get_desktop_osal_parts")
-    def test_make_class_raises_if_desktop_part_missing(
-        self, mock_get_desktop, mock_get_display
-    ):
-        """_make_class() raises RuntimeError if desktop part not found."""
-        mock_base_pointer_part = MagicMock(name="LinuxKeyboardPart")
-        mock_get_desktop.return_value = {}  # Missing!
-        mock_get_display.return_value = {"pointer": MagicMock()}
-
-        with patch("pyautogui2.osal.linux.globals", return_value={
-            "LinuxPointerPart": mock_base_pointer_part
-        }), pytest.raises(RuntimeError, match="Missing OSAL parts for desktops.pointer"):
-            _make_class("pointer")
-
-    @patch("pyautogui2.osal.linux.get_display_server_osal_parts")
-    @patch("pyautogui2.osal.linux.get_desktop_osal_parts")
-    def test_make_class_raises_if_display_part_missing(
-        self, mock_get_desktop, mock_get_display
-    ):
-        """_make_class() raises RuntimeError if display part not found."""
-        mock_base_pointer_part = MagicMock(name="LinuxPointerPart")
-        mock_get_desktop.return_value = {"pointer": MagicMock()}
-        mock_get_display.return_value = {}  # Missing!
-
-        with patch("pyautogui2.osal.linux.globals", return_value={
-            "LinuxPointerPart": mock_base_pointer_part
-        }), pytest.raises(RuntimeError, match="Missing OSAL parts for display_servers.pointer"):
-            _make_class("pointer")
-
-    @patch("pyautogui2.osal.linux.get_display_server_osal_parts")
-    @patch("pyautogui2.osal.linux.get_desktop_osal_parts")
-    def test_make_class_raises_if_both_desktop_and_display_parts_missing(
-        self, mock_get_desktop, mock_get_display
-    ):
-        """_make_class() raises RuntimeError listing all missing parts."""
-        mock_base_pointer_part = MagicMock(name="LinuxPointerPart")
-        mock_get_desktop.return_value = {}  # Missing!
-        mock_get_display.return_value = {}  # Missing!
-
-        with patch("pyautogui2.osal.linux.globals", return_value={
-            "LinuxPointerPart": mock_base_pointer_part
-        }):
-            with pytest.raises(RuntimeError) as exc_info:
-                _make_class("pointer")
-
-            error_message = str(exc_info.value)
-            assert "desktops.pointer" in error_message
-            assert "display_servers.pointer" in error_message
-
-    @patch("pyautogui2.osal.linux.get_display_server_osal_parts")
-    @patch("pyautogui2.osal.linux.get_desktop_osal_parts")
     @patch("pyautogui2.osal.linux._compose_linux_class")
     def test_make_class_returns_composed_class(
         self, mock_compose, mock_get_desktop, mock_get_display

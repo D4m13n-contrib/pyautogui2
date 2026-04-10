@@ -26,4 +26,4 @@ class TestScreenRealBasic:
             location.left + location.width,
             location.top + location.height,
         ))
-        assert list(found_region.getdata()) == list(img_to_find.getdata())
+        assert list(found_region.get_flattened_data()) == list(img_to_find.get_flattened_data())

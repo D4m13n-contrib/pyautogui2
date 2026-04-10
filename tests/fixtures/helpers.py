@@ -1,5 +1,5 @@
 """Pytest helpers for tests."""
-
+import os
 
 from pyautogui2.osal.platform_info import get_platform_info
 
@@ -54,4 +54,12 @@ def is_linux_de_gnome():
 def is_linux_de_xfce():
     """Check if running XFCE desktop environment."""
     return is_linux() and get_platform_info().get("linux_desktop") == "xfce"
+
+
+# ===============================
+# Detect Linux XIM compatibility
+# ===============================
+def is_linux_xim_compatible() -> bool:
+    """Check if an XIM-compatible input method is active."""
+    return is_linux() and "@im=" in os.environ.get("XMODIFIERS", "")
 

@@ -49,11 +49,14 @@ classifiers = [
 ]
 dependencies = [
     "pyscreeze>=0.1.30",
-    "pillow>=11.3.0",
+    "pillow>=12.1.1",
     "pymsgbox>=1.0.9",
     "pytweening>=1.2.0",
     "pygetwindow>=0.0.5",
+    "more-itertools>=10.8.0",
     "python-xlib>=0.33; sys_platform=='linux'",
+    "python-uinput>=1.0.1; sys_platform=='linux'",
+    "pydbus>=0.6.0; sys_platform=='linux'",
     "pyobjc-core>=2.5.1; sys_platform=='darwin'",
     "pyobjc-framework-Quartz>=2.5.1; sys_platform=='darwin'",
 ]

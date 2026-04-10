@@ -65,6 +65,7 @@ class GnomeShellKeyboardPart(AbstractKeyboard):
 
         Raises:
             RuntimeError: If D-Bus backend connection fails (extension issue).
+            PyAutoGUIException: If layout is not supported.
         """
         layout = self.backend.get_keyboard_layout()
 

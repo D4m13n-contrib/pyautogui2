@@ -121,7 +121,7 @@ class AbstractPointer(AbstractOSAL):
             top-left corner of the primary screen.
 
         Note:
-            Called by PointerController.position() without modification.
+            Called by PointerController.get_position() without modification.
         """
         pass
 

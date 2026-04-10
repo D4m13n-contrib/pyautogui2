@@ -61,4 +61,3 @@ class LinuxKeyboardPart(AbstractKeyboard):
             time.sleep(.1)  # Sometimes required, else the SPACE key below could be ignored
             self.key_down('space', _pause=False)
             self.key_up('space', _pause=False)
-
