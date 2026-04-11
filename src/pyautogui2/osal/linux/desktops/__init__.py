@@ -13,6 +13,8 @@ def get_desktop_osal_parts() -> dict[str, type]:
         from .cinnamon import get_cinnamon_osal_parts as _get_osal_parts
     elif desktop == "gnome":
         from .gnome import get_gnome_osal_parts as _get_osal_parts
+    elif desktop == "kde":
+        from .kde import get_kde_osal_parts as _get_osal_parts
     elif desktop == "mate":
         from .mate import get_mate_osal_parts as _get_osal_parts
     elif desktop == "xfce":

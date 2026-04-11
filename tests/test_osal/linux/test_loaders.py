@@ -25,6 +25,7 @@ class TestDesktopLoader:
     @pytest.mark.parametrize("test_desktop, test_cls_name", [
         ("cinnamon", "CinnamonPointerPart"),
         ("gnome", "GnomePointerPart"),
+        ("kde", "KdePointerPart"),
         ("mate", "MatePointerPart"),
         ("xfce", "XfcePointerPart"),
     ])
@@ -184,11 +185,8 @@ class TestIndividualGetters:
 
         parts = get_kde_osal_parts()
 
-        assert len(parts) == 4
+        assert len(parts) == 1
         assert parts["pointer"].__name__ == "KdePointerPart"
-        assert parts["keyboard"].__name__ == "KdeKeyboardPart"
-        assert parts["screen"].__name__ == "KdeScreenPart"
-        assert parts["dialogs"].__name__ == "KdeDialogsPart"
 
     def test_get_xfce_osal_parts(self, isolated_linux):
         """get_xfce_osal_parts() returns correct XFCE parts."""

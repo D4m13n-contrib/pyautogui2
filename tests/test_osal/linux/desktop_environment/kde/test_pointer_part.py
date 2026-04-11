@@ -1,49 +1,83 @@
-"""Tests for KDE Desktop Environment Parts.
-
-Desktop Environment Parts are responsible for detecting the primary mouse button
-based on system settings (left-handed mode, accessibility, etc.).
-
-Test strategy:
-- Mock system calls (gsettings, kwriteconfig, etc.)
-- Verify correct button returned based on system configuration
-- Ensure error handling works correctly
-"""
+"""Tests for KDE Desktop Environment Parts."""
 
 from unittest.mock import patch
 
-import pytest
+from pyautogui2.utils.types import ButtonName
 
-
-pytest.skip('//TODO waiting implementation...', allow_module_level=True)
 
 class TestKdePointerPart:
-    """Tests for KdeDesktopPart."""
+    """Tests for KdePointerPart."""
 
     def test_get_primary_button_returns_left_by_default(self, linux_de_kde_pointer):
-        """get_primary_button() returns 'left' for KDE when not left-handed."""
-        # Mock KDE config reading (kreadconfig5 or similar)
-        with patch("subprocess.check_output") as mock_subprocess:
-            mock_subprocess.return_value = b"false\n"
-
+        """get_primary_button() returns LEFT when kcminputrc does not exist."""
+        linux_de_kde_pointer._cache_primary_button = None
+        with patch(
+            "pyautogui2.osal.linux.desktops.kde.pointer.Path.exists",
+            return_value=False,
+        ):
             button = linux_de_kde_pointer.get_primary_button()
 
-            assert button == "left"
+        assert button == ButtonName.LEFT
 
     def test_get_primary_button_returns_right_when_left_handed(self, linux_de_kde_pointer):
-        """get_primary_button() returns 'right' when KDE left-handed mode is enabled."""
-        with patch("subprocess.check_output") as mock_subprocess:
-            mock_subprocess.return_value = b"true\n"
-
+        """get_primary_button() returns RIGHT when kcminputrc has LeftHanded=true."""
+        linux_de_kde_pointer._cache_primary_button = None
+        with patch(
+            "pyautogui2.osal.linux.desktops.kde.pointer.Path.exists",
+            return_value=True,
+        ), patch(
+            "pyautogui2.osal.linux.desktops.kde.pointer.configparser.RawConfigParser.read"
+        ), patch(
+            "pyautogui2.osal.linux.desktops.kde.pointer.configparser.RawConfigParser.sections",
+            return_value=["Libinput"],
+        ), patch(
+            "pyautogui2.osal.linux.desktops.kde.pointer.configparser.RawConfigParser.get",
+            return_value="true",
+        ):
             button = linux_de_kde_pointer.get_primary_button()
 
-            assert button == "right"
+        assert button == ButtonName.RIGHT
 
-    def test_get_primary_button_handles_missing_config(self, linux_de_kde_pointer):
-        """get_primary_button() handles missing KDE configuration gracefully."""
-        with patch("subprocess.check_output") as mock_subprocess:
-            from subprocess import CalledProcessError
-            mock_subprocess.side_effect = CalledProcessError(1, "kreadconfig5")
+    def test_get_primary_button_returns_left_when_not_left_handed(self, linux_de_kde_pointer):
+        """get_primary_button() returns LEFT when kcminputrc has LeftHanded=false."""
+        linux_de_kde_pointer._cache_primary_button = None
+        with patch(
+            "pyautogui2.osal.linux.desktops.kde.pointer.Path.exists",
+            return_value=True,
+        ), patch(
+            "pyautogui2.osal.linux.desktops.kde.pointer.configparser.RawConfigParser.read"
+        ), patch(
+            "pyautogui2.osal.linux.desktops.kde.pointer.configparser.RawConfigParser.sections",
+            return_value=["Libinput"],
+        ), patch(
+            "pyautogui2.osal.linux.desktops.kde.pointer.configparser.RawConfigParser.get",
+            return_value="false",
+        ):
+            button = linux_de_kde_pointer.get_primary_button()
 
-            # Should fallback to default
-            with pytest.raises(Exception, match="Error"):
-                linux_de_kde_pointer.get_primary_button()
+        assert button == ButtonName.LEFT
+
+    def test_get_primary_button_cache(self, linux_de_kde_pointer):
+        """get_primary_button() returns cached value on second call."""
+        linux_de_kde_pointer._cache_primary_button = ButtonName.RIGHT
+
+        button = linux_de_kde_pointer.get_primary_button()
+
+        assert button == ButtonName.RIGHT
+
+    def test_is_left_handed_no_libinput_section(self, linux_de_kde_pointer):
+        """_is_left_handed() returns False when no Libinput section exists."""
+        from pyautogui2.osal.linux.desktops.kde.pointer import KdePointerPart
+
+        with patch(
+            "pyautogui2.osal.linux.desktops.kde.pointer.Path.exists",
+            return_value=True,
+        ), patch(
+            "pyautogui2.osal.linux.desktops.kde.pointer.configparser.RawConfigParser.read"
+        ), patch(
+            "pyautogui2.osal.linux.desktops.kde.pointer.configparser.RawConfigParser.sections",
+            return_value=["Mouse"],  # not a libinput section
+        ):
+            result = KdePointerPart._is_left_handed()
+
+        assert result is False
