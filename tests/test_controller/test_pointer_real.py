@@ -10,6 +10,8 @@ import pytest
 from pyautogui2.utils.exceptions import FailSafeException, PyAutoGUIException
 from pyautogui2.utils.types import Point
 
+from tests.fixtures.helpers import skip_if_no_get_position
+
 
 @pytest.mark.real
 class TestMoveToGetPositionIntegration:
@@ -29,7 +31,10 @@ class TestMoveToGetPositionIntegration:
         """Test move_to() with integers reaches EXACT coordinates.
         No tolerance allowed - failsafe depends on exact position matching.
         """
+        skip_if_no_get_position(pyautogui_real.pointer)
+
         pyautogui_real.pointer.move_to(0, 0)
+
         pyautogui_real.pointer.move_to(target_x, target_y)
 
         actual = pyautogui_real.pointer.get_position()
@@ -47,6 +52,8 @@ class TestMoveToGetPositionIntegration:
     def test_move_to_screen_boundaries(self, get_pos_test, expectation, pyautogui_real):
         """Test move_to() works at screen edges (failsafe corner)."""
         from pyautogui2.utils.decorators.failsafe import FailsafeManager
+
+        skip_if_no_get_position(pyautogui_real.pointer)
 
         width, height = pyautogui_real.screen.get_size_max()
         failsafe_x, failsafe_y = get_pos_test(width, height)
@@ -77,6 +84,8 @@ class TestMoveToGetPositionIntegration:
         If this fails on your platform, it's important to understand why
         (affects pixel-perfect operations).
         """
+        skip_if_no_get_position(pyautogui_real.pointer)
+
         pyautogui_real.pointer.move_to(float_x, float_y)
         actual = pyautogui_real.pointer.get_position()
 
@@ -88,6 +97,8 @@ class TestMoveToGetPositionIntegration:
     @pytest.mark.flaky(retries=1, delay=1, only_on=[PyAutoGUIException])
     def test_move_to_successive_calls_independent(self, pyautogui_real):
         """Test multiple move_to() calls don't accumulate errors."""
+        skip_if_no_get_position(pyautogui_real.pointer)
+
         positions = [(100, 100), (200, 200), (150, 150), (300, 250)]
 
         for x, y in positions:
@@ -99,6 +110,8 @@ class TestMoveToGetPositionIntegration:
     @pytest.mark.flaky(retries=1, delay=1, only_on=[PyAutoGUIException])
     def test_move_to_with_duration_reaches_destination(self, pyautogui_real):
         """Test animated movement eventually reaches exact coordinates."""
+        skip_if_no_get_position(pyautogui_real.pointer)
+
         start_x, start_y = 100, 100
         target_x, target_y = 500, 400
         duration = 0.5
@@ -122,6 +135,8 @@ class TestMoveToGetPositionIntegration:
         This test explicitly moves to (0, 0) and verifies the position
         is reported exactly, which is what failsafe checks.
         """
+        skip_if_no_get_position(pyautogui_real.pointer)
+
         pyautogui_real.pointer.move_to(0, 0)
         pos = pyautogui_real.pointer.get_position()
 

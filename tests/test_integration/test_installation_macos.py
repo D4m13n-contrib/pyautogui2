@@ -3,7 +3,7 @@ import time
 
 import pytest
 
-from tests.fixtures.helpers import is_macos
+from tests.fixtures.helpers import is_macos, skip_if_no_get_position
 
 
 if not is_macos():
@@ -49,7 +49,10 @@ class TestMacOSInstallation:
     @pytest.mark.real
     def test_mouse_position(self, pyautogui_real):
         """Test mouse position retrieval (real system call)."""
+        skip_if_no_get_position(pyautogui_real.pointer)
+
         x, y = pyautogui_real.pointer.get_position()
+
         assert isinstance(x, (int, float))
         assert isinstance(y, (int, float))
         assert x >= 0
@@ -65,6 +68,8 @@ class TestMacOSInstallation:
     @pytest.mark.real
     def test_mouse_move(self, pyautogui_real):
         """Test mouse movement (real system action)."""
+        skip_if_no_get_position(pyautogui_real.pointer)
+
         # Force stable position before test
         pyautogui_real.pointer.move_to(100, 100)
 
@@ -114,6 +119,8 @@ class TestMacOSAccessibility:
     @pytest.mark.real
     def test_accessibility_permissions_check(self, pyautogui_real):
         """Test accessibility permissions (might need manual grant)."""
+        skip_if_no_get_position(pyautogui_real.pointer)
+
         try:
             # Try to move mouse (requires accessibility permissions)
             x, y = pyautogui_real.pointer.get_position()
@@ -150,6 +157,8 @@ class TestMacOSCatchUpTime:
     @pytest.mark.real
     def test_rapid_mouse_movements(self, pyautogui_real):
         """Test rapid mouse movements with catch-up time."""
+        skip_if_no_get_position(pyautogui_real.pointer)
+
         # Get starting position
         x1, y1 = pyautogui_real.pointer.get_position()
 
@@ -192,6 +201,8 @@ class TestMacOSInputSimulation:
     @pytest.mark.real
     def test_mouse_click(self, pyautogui_real):
         """Test mouse click (real system action - be careful!)."""
+        skip_if_no_get_position(pyautogui_real.pointer)
+
         # Get current position (don't click anywhere dangerous)
         x, y = pyautogui_real.pointer.get_position()
 

@@ -47,17 +47,25 @@ class TestGetLinuxInfo:
     @patch("subprocess.run")
     def test_linux_with_kwin_wayland(self, mock_run):
         """Detects KWin Wayland compositor on Linux."""
-        def side_effect(cmd, **kwargs):
+        # kwin_wayland detection
+        def _fake_detect(cmd, **_kw):
             if "kwin_wayland" in cmd:
                 return MagicMock(returncode=0)
             return MagicMock(returncode=1)
 
-        mock_run.side_effect = side_effect
+        mock_run.side_effect = _fake_detect
 
         result = get_linux_info()
 
-        assert result["linux_compositor"] == "kwin"
-        assert result["linux_desktop"] == "kde"
+        assert result == {
+            "linux_display_server": "wayland",
+            "linux_desktop": "kde",
+            "linux_compositor": "kwin",
+        }
+        mock_run.assert_called_with(
+            ["pgrep", "-x", "kwin_wayland"],
+            capture_output=True
+        )
 
     @patch("sys.platform", "linux")
     @patch.dict("os.environ", {}, clear=True)

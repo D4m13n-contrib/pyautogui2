@@ -238,3 +238,16 @@ class TestIndividualGetters:
         assert parts["pointer"].__name__ == "GnomeShellPointerPart"
         assert parts["keyboard"].__name__ == "GnomeShellKeyboardPart"
         assert parts["screen"].__name__ == "GnomeShellScreenPart"
+
+    def test_get_kwin_osal_parts(self, isolated_linux):
+        """get_kwin_osal_parts() returns correct KWin parts."""
+        from pyautogui2.osal.linux.display_servers.wayland.compositor.kwin import (
+            get_kwin_osal_parts,
+        )
+
+        parts = get_kwin_osal_parts()
+
+        assert len(parts) == 3
+        assert parts["pointer"].__name__ == "KWinPointerPart"
+        assert parts["keyboard"].__name__ == "KWinKeyboardPart"
+        assert parts["screen"].__name__ == "KWinScreenPart"

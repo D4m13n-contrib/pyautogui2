@@ -23,6 +23,8 @@ def get_wayland_compositor_osal_parts() -> dict[str, type[Any]]:
 
     if compositor == "gnome_shell":
         from .gnome_shell import get_gnome_shell_osal_parts as _get_compositor_parts
+    elif compositor == "kwin":
+        from .kwin import get_kwin_osal_parts as _get_compositor_parts
     else:
         raise RuntimeError(f"Unsupported Wayland compositor: {compositor}")
 

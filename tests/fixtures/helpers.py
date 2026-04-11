@@ -1,5 +1,8 @@
 """Pytest helpers for tests."""
 import os
+import pytest
+
+from pyautogui2.controllers.pointer import PointerController
 
 from pyautogui2.osal.platform_info import get_platform_info
 
@@ -42,6 +45,11 @@ def is_linux_wayland_compositor_gnome_shell():
     """Check if running Wayland GNOME Shell compositor."""
     return is_linux_ds_wayland() and get_platform_info().get("linux_compositor") == "gnome_shell"
 
+def is_linux_wayland_compositor_kwin():
+    """Check if running Wayland KWin compositor."""
+    return is_linux_ds_wayland() and get_platform_info().get("linux_compositor") == "kwin"
+
+
 # =================================
 # Detect Linux Desktop Environment
 # =================================
@@ -79,3 +87,25 @@ def is_xim_compatible() -> bool:
         return "@im=" in os.environ.get("XMODIFIERS", "")
     return True
 
+
+# =====================
+# Unavailable features
+# =====================
+def skip_if_no_get_position(pointer: PointerController) -> None:
+    """Skip the test if get_position() is not available on this platform."""
+    try:
+        pointer.get_position()
+    except NotImplementedError:
+        pytest.skip("get_position() not available on this platform")
+
+def skip_if_no_screenshot() -> None:
+    """Skip the test if screenshots are not supported by pyscreeze library.
+    For now, platforms do not support screenshots are:
+      - KDE/Wayland (need to use "spectacle" application).
+    """
+    unsupported_platforms = [
+        is_linux_ds_wayland() and is_linux_de_kde(),
+    ]
+
+    if any(unsupported_platforms):
+        pytest.skip("screenshot() not available on this platform")
