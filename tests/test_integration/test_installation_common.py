@@ -2,6 +2,8 @@
 
 import pytest
 
+from tests.fixtures.helpers import skip_if_no_get_position
+
 
 @pytest.mark.real
 class TestCommonInstallation:
@@ -25,7 +27,10 @@ class TestCommonInstallation:
 
     def test_mouse_position(self, pyautogui_real):
         """Test mouse position retrieval (real system call)."""
+        skip_if_no_get_position(pyautogui_real.pointer)
+
         x, y = pyautogui_real.pointer.get_position()
+
         assert isinstance(x, (int, float))
         assert isinstance(y, (int, float))
         assert x >= 0

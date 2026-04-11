@@ -4,7 +4,7 @@ import subprocess
 
 import pytest
 
-from tests.fixtures.helpers import is_linux_ds_wayland
+from tests.fixtures.helpers import is_linux_ds_wayland, skip_if_no_get_position
 
 
 if not is_linux_ds_wayland():
@@ -52,6 +52,8 @@ class TestWaylandInstallation:
     def test_mouse_move(self, pyautogui_real):
         """Test mouse movement (real system action - validates UInput)."""
         import time
+
+        skip_if_no_get_position(pyautogui_real.pointer)
 
         # Force stable position before test
         pyautogui_real.pointer.move_to(100, 100)

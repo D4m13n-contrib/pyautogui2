@@ -2,7 +2,7 @@
 
 import pytest
 
-from tests.fixtures.helpers import is_linux_ds_x11
+from tests.fixtures.helpers import is_linux_ds_x11, skip_if_no_get_position
 
 
 if not is_linux_ds_x11():
@@ -25,6 +25,8 @@ class TestX11Installation:
     @pytest.mark.real
     def test_mouse_move(self, pyautogui_real):
         """Test mouse movement (real system action)."""
+        skip_if_no_get_position(pyautogui_real.pointer)
+
         # Force stable position before test
         pyautogui_real.pointer.move_to(100, 100)
 

@@ -120,6 +120,11 @@ class AbstractPointer(AbstractOSAL):
             Point namedtuple with x and y coordinates, where (0, 0) is the
             top-left corner of the primary screen.
 
+        Raises:
+            NotImplementedError: If the platform or display server does not
+                support querying the pointer position (e.g., Wayland without
+                a supported compositor).
+
         Note:
             Called by PointerController.get_position() without modification.
         """

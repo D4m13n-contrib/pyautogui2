@@ -2,7 +2,7 @@
 
 See AbstractPointerController for documentation.
 """
-
+import logging
 import time
 
 from functools import singledispatchmethod
@@ -152,7 +152,13 @@ class PointerController(AbstractPointerController):
 
         # Get position only if needed
         if x is None or y is None:
-            cx, cy = self.get_position()
+            try:
+                cx, cy = self.get_position()
+            except NotImplementedError as e:
+                raise PyAutoGUIException(
+                    "Cannot resolve relative coordinates: get_position() is not "
+                    "available on this platform. Provide explicit x and y values."
+                ) from e
             if x is None:
                 x = cx
             if y is None:
@@ -371,26 +377,21 @@ class PointerController(AbstractPointerController):
 
         return Point(x, y)
 
-    def _move_compute_step_count(self, duration):
-        """Compute step count with duration (see _move_drag())."""
-        step_count: int = 0
-
-        if duration > self.MINIMUM_DURATION:
-            step_count = int(duration / self.MINIMUM_SLEEP)
-
-        return step_count
-
-    def _move_build_step_points(self, start_pos: Point, target_pos: Point, step_count: int, tween: Optional[str] = None):
+    def _move_build_step_points(self, start_pos: Optional[Point], target_pos: Point, duration: float, tween: Optional[str] = None):
         """Build all step points with tweening (see _move_drag())."""
-        tween_func = TweeningManager()(tween or 'linear')
+        steps: list[Point] = []
 
-        steps: list[Point] = [
-            Point(*TweeningManager().get_point_on_line(start_pos.x, start_pos.y,
-                                                       target_pos.x, target_pos.y,
-                                                       tween_func(n / step_count))
-            )
-            for n in range(step_count)
-        ]
+        if start_pos is not None:
+            tween_func = TweeningManager()(tween or 'linear')
+            step_count: int = int(duration / self.MINIMUM_SLEEP) if duration > self.MINIMUM_DURATION else 0
+
+            steps: list[Point] = [
+                Point(*TweeningManager().get_point_on_line(start_pos.x, start_pos.y,
+                                                           target_pos.x, target_pos.y,
+                                                           tween_func(n / step_count))
+                )
+                for n in range(step_count)
+            ]
 
         # Making sure the last position is the target destination.
         steps.append(target_pos)
@@ -474,16 +475,22 @@ class PointerController(AbstractPointerController):
         if tween is not None and tween not in TweeningManager().tweens:
             raise PyAutoGUIException(f"Unknown tweening name '{tween}'")
 
-        start_pos = self.get_position()
+        try:
+            start_pos = self.get_position()
+        except NotImplementedError:
+            logging.warning(
+                "get_position() is not available on this platform. "
+                "The 'duration' parameter will be ignored and the move "
+                "will be performed instantly."
+            )
+            start_pos = None
 
         real_target_pos = self._get_real_target_pos(start_pos, target_x, target_y, offset_x, offset_y)
         if real_target_pos is None:
             # Nothing to move
             return
 
-        step_count = self._move_compute_step_count(duration)
-
-        steps = self._move_build_step_points(start_pos, real_target_pos, step_count, tween)
+        steps = self._move_build_step_points(start_pos, real_target_pos, duration, tween)
 
         if len(steps) == 1 and steps[0] == start_pos:
             # Pointer already at the target position => nothing to move
@@ -494,11 +501,14 @@ class PointerController(AbstractPointerController):
         self._move_drag_all_steps(steps, sleep_amount, button)
 
         # Check target position is reached
-        last_pos = self.get_position()
-        if last_pos != real_target_pos:
-            raise PyAutoGUIException(
-                f"Error: failed to move from {start_pos} to {real_target_pos}, reached {last_pos}."
-            )
+        try:
+            last_pos = self.get_position()
+            if last_pos != real_target_pos:
+                raise PyAutoGUIException(
+                    f"Error: failed to move from {start_pos} to {real_target_pos}, reached {last_pos}."
+                )
+        except NotImplementedError:
+            logging.debug("Cannot verify final position on this platform.")
 
     def move_to(self,
                 x: Optional[ArgCoordX] = None, y: Optional[ArgCoordY] = None,

@@ -3,7 +3,7 @@ import time
 
 import pytest
 
-from tests.fixtures.helpers import is_windows
+from tests.fixtures.helpers import is_windows, skip_if_no_get_position
 
 
 if not is_windows():
@@ -36,7 +36,10 @@ class TestWindowsInstallation:
     @pytest.mark.real
     def test_mouse_position(self, pyautogui_real):
         """Test mouse position retrieval (real system call)."""
+        skip_if_no_get_position(pyautogui_real.pointer)
+
         x, y = pyautogui_real.pointer.get_position()
+
         assert isinstance(x, (int, float))
         assert isinstance(y, (int, float))
         assert x >= 0
@@ -52,6 +55,8 @@ class TestWindowsInstallation:
     @pytest.mark.real
     def test_mouse_move(self, pyautogui_real):
         """Test mouse movement (real system action)."""
+        skip_if_no_get_position(pyautogui_real.pointer)
+
         # Force stable position before test
         pyautogui_real.pointer.move_to(100, 100)
 
@@ -103,6 +108,8 @@ class TestWindowsInputSimulation:
     @pytest.mark.real
     def test_mouse_click(self, pyautogui_real):
         """Test mouse click (real system action - be careful!)."""
+        skip_if_no_get_position(pyautogui_real.pointer)
+
         # Get current position (don't click anywhere dangerous)
         x, y = pyautogui_real.pointer.get_position()
 
@@ -128,6 +135,8 @@ class TestWindowsDPIAwareness:
     @pytest.mark.real
     def test_screen_coordinates_accurate(self, pyautogui_real):
         """Test that screen coordinates account for DPI scaling."""
+        skip_if_no_get_position(pyautogui_real.pointer)
+
         # Get mouse position at corner
         pyautogui_real.pointer.move_to(1, 1)
         x, y = pyautogui_real.pointer.get_position()

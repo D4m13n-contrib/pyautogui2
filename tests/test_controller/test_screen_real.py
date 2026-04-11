@@ -5,12 +5,16 @@ import pytest
 
 from pyautogui2.utils.types import Box
 
+from tests.fixtures.helpers import skip_if_no_screenshot
+
 
 @pytest.mark.real
 class TestScreenRealBasic:
 
     def test_basic(self, pyautogui_real):
         """Take real screenshot and locate a region within it."""
+        skip_if_no_screenshot()
+
         screenshot = pyautogui_real.screen.screenshot()
         img_to_find = screenshot.crop((1, 1, 30, 40))
         location = pyautogui_real.screen.locate(img_to_find, screenshot)

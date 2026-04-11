@@ -4,7 +4,7 @@ import subprocess
 
 import pytest
 
-from tests.fixtures.helpers import is_linux_wayland_compositor_gnome_shell
+from tests.fixtures.helpers import is_linux_wayland_compositor_gnome_shell, skip_if_no_get_position
 
 
 if not is_linux_wayland_compositor_gnome_shell():
@@ -40,7 +40,10 @@ class TestWaylandGnomeShell:
     @pytest.mark.real
     def test_mouse_position(self, pyautogui_real):
         """Test mouse position retrieval (real system call - validates extension)."""
+        skip_if_no_get_position(pyautogui_real.pointer)
+
         x, y = pyautogui_real.pointer.get_position()
+
         assert isinstance(x, (int, float))
         assert isinstance(y, (int, float))
         assert x >= 0
