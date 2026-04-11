@@ -25,6 +25,7 @@ class TestDesktopLoader:
     @pytest.mark.parametrize("test_desktop, test_cls_name", [
         ("cinnamon", "CinnamonPointerPart"),
         ("gnome", "GnomePointerPart"),
+        ("mate", "MatePointerPart"),
         ("xfce", "XfcePointerPart"),
     ])
     def test_get_desktop_parts_gnome(self, test_desktop, test_cls_name, isolated_linux):
@@ -206,6 +207,15 @@ class TestIndividualGetters:
 
         assert len(parts) == 1
         assert parts["pointer"].__name__ == "CinnamonPointerPart"
+
+    def test_get_mate_osal_parts(self, isolated_linux):
+        """get_mate_osal_parts() returns correct MATE parts."""
+        from pyautogui2.osal.linux.desktops.mate import get_mate_osal_parts
+
+        parts = get_mate_osal_parts()
+
+        assert len(parts) == 1
+        assert parts["pointer"].__name__ == "MatePointerPart"
 
     def test_get_x11_osal_parts(self, isolated_linux):
         """get_x11_osal_parts() returns correct X11 parts."""

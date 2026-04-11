@@ -55,6 +55,11 @@ def is_linux_de_gnome():
     return is_linux() and get_platform_info().get("linux_desktop") == "gnome"
 
 
+def is_linux_de_mate():
+    """Check if running MATE desktop environment."""
+    return is_linux() and get_platform_info().get("linux_desktop") == "mate"
+
+
 def is_linux_de_xfce():
     """Check if running XFCE desktop environment."""
     return is_linux() and get_platform_info().get("linux_desktop") == "xfce"
