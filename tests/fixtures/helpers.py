@@ -45,6 +45,10 @@ def is_linux_wayland_compositor_gnome_shell():
 # =================================
 # Detect Linux Desktop Environment
 # =================================
+def is_linux_de_cinnamon():
+    """Check if running Cinnamon desktop environment."""
+    return is_linux() and get_platform_info().get("linux_desktop") == "cinnamon"
+
 
 def is_linux_de_gnome():
     """Check if running GNOME desktop environment."""

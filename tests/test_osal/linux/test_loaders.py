@@ -23,6 +23,7 @@ class TestDesktopLoader:
     """Tests for get_desktop_osal_parts() loader."""
 
     @pytest.mark.parametrize("test_desktop, test_cls_name", [
+        ("cinnamon", "CinnamonPointerPart"),
         ("gnome", "GnomePointerPart"),
         ("xfce", "XfcePointerPart"),
     ])
@@ -196,6 +197,15 @@ class TestIndividualGetters:
 
         assert len(parts) == 1
         assert parts["pointer"].__name__ == "XfcePointerPart"
+
+    def test_get_cinnamon_osal_parts(self, isolated_linux):
+        """get_cinnamon_osal_parts() returns correct Cinnamon parts."""
+        from pyautogui2.osal.linux.desktops.cinnamon import get_cinnamon_osal_parts
+
+        parts = get_cinnamon_osal_parts()
+
+        assert len(parts) == 1
+        assert parts["pointer"].__name__ == "CinnamonPointerPart"
 
     def test_get_x11_osal_parts(self, isolated_linux):
         """get_x11_osal_parts() returns correct X11 parts."""
