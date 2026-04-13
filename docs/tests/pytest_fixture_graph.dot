@@ -69,7 +69,7 @@ digraph {
 				subgraph cluster_14 {
 					color="#CCCCCC" fillcolor="#F8F9F9" fontname=Helvetica fontsize=9 label="gnome_shell.py" style="rounded,filled"
 					isolated_gnome_shell [label=isolated_gnome_shell color="#E67E22" fillcolor="#FAD7A0" penwidth=1 style=filled]
-					linux_ds_wayland_co_gnome_shell_dialogs [label=linux_ds_wayland_co_gnome_shell_dialogs color="#E67E22" fillcolor="#FAD7A0" penwidth=1 style=filled]
+					linux_ds_wayland_co_gnome_shell_dialogs [label="-- linux_ds_wayland_co_gnome_shell_dialogs --" color="#E74C3C" fillcolor="#FAD7A0" penwidth=2 style="filled,bold"]
 					linux_ds_wayland_co_gnome_shell_keyboard [label=linux_ds_wayland_co_gnome_shell_keyboard color="#E67E22" fillcolor="#FAD7A0" penwidth=1 style=filled]
 					linux_ds_wayland_co_gnome_shell_pointer [label=linux_ds_wayland_co_gnome_shell_pointer color="#E67E22" fillcolor="#FAD7A0" penwidth=1 style=filled]
 					linux_ds_wayland_co_gnome_shell_screen [label=linux_ds_wayland_co_gnome_shell_screen color="#E67E22" fillcolor="#FAD7A0" penwidth=1 style=filled]
@@ -297,7 +297,6 @@ digraph {
 	linux_de_xfce_pointer -> __used__ [color="#27AE60" style=dashed]
 	linux_dialogs -> __used__ [color="#27AE60" style=dashed]
 	linux_ds_wayland_backend_real -> __used__ [color="#27AE60" style=dashed]
-	linux_ds_wayland_co_gnome_shell_dialogs -> __used__ [color="#27AE60" style=dashed]
 	linux_ds_wayland_co_gnome_shell_keyboard -> __used__ [color="#27AE60" style=dashed]
 	linux_ds_wayland_co_gnome_shell_pointer -> __used__ [color="#27AE60" style=dashed]
 	linux_ds_wayland_co_gnome_shell_screen -> __used__ [color="#27AE60" style=dashed]

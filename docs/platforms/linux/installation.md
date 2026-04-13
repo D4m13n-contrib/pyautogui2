@@ -38,7 +38,7 @@ See the sections below.
 
 ---
 
-## Dependencies by Component
+## Display Server Dependencies
 
 ### X11
 
@@ -69,15 +69,45 @@ See [Wayland — Specifics and Limitations](wayland.md#setup) for more details.
 
 ---
 
+## Desktop Environment Dependencies
+
+### Cinnamon
+
+No additional dependency is required.
+
+Uses `gsettings` commands.
+
+---
+
 ### GNOME
 
-No additional dependency is required for basic GNOME support.
+No additional dependency is required.
+
+Uses `gsettings` commands.
 
 ---
 
 ### KDE Plasma
 
 No additional dependency is required.
+
+Reads `~/.config/kcminputrc` configuraiton file.
+
+---
+
+### MATE
+
+No additional dependency is required.
+
+Uses `gsettings` commands.
+
+---
+
+### XFCE
+
+No additional dependency is required.
+
+Uses `gsettings` commands.
 
 ---
 
@@ -135,6 +165,24 @@ xvfb-run python your_script.py
 If your Python environment is installed via Snap or Flatpak, it may be sandboxed and unable to
 access `/dev/uinput`. Use a standard system Python or a virtual environment created outside
 the sandbox.
+
+---
+
+### 4. UNICODE codepoint not working
+
+If the `codepoint()` function does not work, and only hexadecimal codepoint value is wrote you
+should install and activate IBus.
+```bash
+# Install IBus
+sudo apt install ibus
+```
+
+Tests use TKinter to test keyboard typing work, and IBus must be configured.
+```bash
+# XMODIFIERS variable should be defined and starts with "@im="
+echo $XMODIFIERS
+@im=ibus
+```
 
 ---
 
