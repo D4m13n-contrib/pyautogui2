@@ -1,8 +1,11 @@
 """WaylandKeyboardPart - Display server part for all Linux keyboards."""
+import time
+
 from typing import Any, Optional
 
 from .....utils.lazy_import import lazy_import
 from ....abstract_cls import AbstractKeyboard
+from ._common import ensure_device_not_exists
 
 
 KeyCode = tuple[int, int]  # python-uinput key constants are tuples
@@ -78,9 +81,12 @@ class WaylandKeyboardPart(AbstractKeyboard):
         if layout not in all_keymapping:
             raise ValueError(f"Error: '{layout}' layout is not supported ({list(all_keymapping.keys())})")
 
+        ensure_device_not_exists(self._device_name)
+
         # Create device with all KEY_* (ensures completeness)
         all_keycodes = [val for name, val in self._uinput.__dict__.items() if name.startswith("KEY_")]
         self._device = self._uinput.Device(all_keycodes, name=self._device_name)
+        time.sleep(0.1)     # Let's give the OS some time to create the device
 
         self._mods_keycodes = (
             ('shift', self._uinput.KEY_LEFTSHIFT),
@@ -258,6 +264,13 @@ class WaylandKeyboardPart(AbstractKeyboard):
             # 'kana'
             # 'yen'
         })
+
+    def teardown_postinit(self, *args: Any, **kwargs: Any) -> None:
+        """Close the UInput virtual device if it was created."""
+        super().teardown_postinit(*args, **kwargs)
+        if self._device is not None:
+            self._device.destroy()
+            self._device = None
 
     def _emit_key(self, key: str, value: int) -> None:
         """Press (1) or release (0) a key, applying modifiers if necessary.

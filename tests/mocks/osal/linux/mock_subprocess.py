@@ -65,6 +65,10 @@ HDMI-1 connected primary 1920x1080+0+0 (normal left inverted right x axis y axis
 """
 
         # ==================== Wayland Commands ====================
+        # check device already registered
+        self._responses["grep|-qF|pyautogui-virtual-pointer"] = {"returncode": 1}
+        self._responses["grep|-qF|pyautogui-virtual-keyboard"] = {"returncode": 1}
+
         # localectl (keyboard layout - systemd)
         self._responses["localectl|status"] = """   System Locale: LANG=en_US.UTF-8
        VC Keymap: us
@@ -129,13 +133,19 @@ HDMI-1 connected primary 1920x1080+0+0 (normal left inverted right x axis y axis
         key = self._build_key(cmd)
         response = self._responses.get(key, "")
 
+        data = {}
+
         if isinstance(response, Exception):
             raise response
+        elif isinstance(response, str):
+            data["response"] = response
+        elif isinstance(response, dict):
+            data = response
 
         # Return CompletedProcess-like object
         result = Mock()
-        result.returncode = 0
-        result.stdout = response if kwargs.get("capture_output") else None
+        result.returncode = data.get("returncode", 0)
+        result.stdout = data.get("response", "") if kwargs.get("capture_output") else None
         result.stderr = None
         return result
 

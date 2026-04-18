@@ -34,6 +34,34 @@ class TestWaylandKeyboardPartSetupPostinit:
             linux_ds_wayland_keyboard.setup_postinit(key_names=[], all_keymapping={})
 
 
+class TestWaylandKeyboardPartTeardown:
+    """Tests for Wayland keyboard teardown_postinit()."""
+
+    def test_teardown_without_setup_does_nothing(self, isolated_linux_wayland):
+        """teardown_postinit() with _device=None should be a no-op (no setup called)."""
+        from pyautogui2.osal.linux import _compose_linux_class
+        from pyautogui2.osal.linux.display_servers.wayland import _make_wayland_part
+        from pyautogui2.osal.linux.display_servers.wayland.keyboard import WaylandKeyboardPart
+        from tests.mocks.osal.linux.mock_parts import (
+            MockBaseKeyboardPart,
+            MockDEKeyboardPart,
+            MockWaylandCompositorKeyboardPart,
+        )
+
+        wayland_with_compositor = _make_wayland_part(WaylandKeyboardPart, MockWaylandCompositorKeyboardPart)
+        cls_parts = [MockBaseKeyboardPart, MockDEKeyboardPart, wayland_with_compositor]
+        osal_cls = _compose_linux_class("keyboard", *cls_parts)
+        osal = osal_cls()
+
+        # _device is None at this point, setup_postinit() was never called
+        assert osal._device is None
+
+        # Must not raise, must not call destroy()
+        osal.teardown_postinit()
+
+        assert osal._device is None
+
+
 class TestWaylandKeyboardPartKeySimulation:
     """Tests for key press/release simulation via UInput."""
 

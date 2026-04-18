@@ -13,6 +13,9 @@ class MockUInput:
             super().__init__(*args, **kwargs)
             self.emit = MagicMock()
 
+        def destroy(self):
+            self.reset_mock()
+
         def reset_mock(self, **kwargs):
             super().reset_mock(**kwargs)
             self.emit.reset_mock(side_effect=True)

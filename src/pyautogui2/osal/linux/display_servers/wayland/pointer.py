@@ -1,10 +1,13 @@
 """WaylandPointerPart - Display server part for all Linux pointers."""
+import time
+
 from typing import Any, Optional
 
 from .....utils.exceptions import PyAutoGUIException
 from .....utils.lazy_import import lazy_import
 from .....utils.types import ButtonName
 from ....abstract_cls import AbstractPointer
+from ._common import ensure_device_not_exists
 
 
 class WaylandPointerPart(AbstractPointer):
@@ -96,6 +99,8 @@ class WaylandPointerPart(AbstractPointer):
             self.BUTTON_NAME_MAPPING[ButtonName.PRIMARY] = self.BUTTON_NAME_MAPPING[ButtonName.RIGHT]
             self.BUTTON_NAME_MAPPING[ButtonName.SECONDARY] = self.BUTTON_NAME_MAPPING[ButtonName.LEFT]
 
+        ensure_device_not_exists(self._device_name)
+
         self._device = self._uinput.Device([
             self._uinput.BTN_LEFT,
             self._uinput.BTN_RIGHT,
@@ -106,7 +111,16 @@ class WaylandPointerPart(AbstractPointer):
             self._uinput.ABS_Y + (0, h - 1, 0, 0),
         ], name=self._device_name)
 
+        time.sleep(0.1)     # Let's give the OS some time to create the device
+
         self._first_move_done = False
+
+    def teardown_postinit(self, *args: Any, **kwargs: Any) -> None:
+        """Close the UInput virtual device if it was created."""
+        super().teardown_postinit(*args, **kwargs)
+        if self._device is not None:
+            self._device.destroy()
+            self._device = None
 
     def move_to(self, x: int, y: int, **_kwargs: Any) -> None:
         """Implementation Notes:

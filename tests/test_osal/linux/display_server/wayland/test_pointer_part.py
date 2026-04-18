@@ -51,6 +51,34 @@ class TestWaylandPointerPartSetupPostinit:
             assert btn_mapping[ButtonName.SECONDARY] == btn_mapping[ButtonName.LEFT]
 
 
+class TestWaylandPointerPartTeardown:
+    """Tests for Wayland pointer teardown_postinit()."""
+
+    def test_teardown_without_setup_does_nothing(self, isolated_linux_wayland):
+        """teardown_postinit() with _device=None should be a no-op (no setup called)."""
+        from pyautogui2.osal.linux import _compose_linux_class
+        from pyautogui2.osal.linux.display_servers.wayland import _make_wayland_part
+        from pyautogui2.osal.linux.display_servers.wayland.pointer import WaylandPointerPart
+        from tests.mocks.osal.linux.mock_parts import (
+            MockBasePointerPart,
+            MockDEPointerPart,
+            MockWaylandCompositorPointerPart,
+        )
+
+        wayland_with_compositor = _make_wayland_part(WaylandPointerPart, MockWaylandCompositorPointerPart)
+        cls_parts = [MockBasePointerPart, MockDEPointerPart, wayland_with_compositor]
+        osal_cls = _compose_linux_class("pointer", *cls_parts)
+        osal = osal_cls()
+
+        # _device is None at this point, setup_postinit() was never called
+        assert osal._device is None
+
+        # Must not raise, must not call destroy()
+        osal.teardown_postinit()
+
+        assert osal._device is None
+
+
 class TestWaylandPointerPartMovement:
     """Tests for Wayland pointer movement functions."""
 
