@@ -232,6 +232,7 @@ class MockDSScreenPart(AbstractScreen, MockOSALBase):
 
         # Wrap all methods with MagicMock for call tracking
         methods = {
+            "_take_screenshot": {},
             "get_size": {},
             "get_size_max": {},
         }

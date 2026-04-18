@@ -23,17 +23,27 @@ class TestLinuxScreenDelegatesToPyScreeze:
     def test_locate_all_on_screen_delegate(self, linux_screen):
         """Call locate_all_on_screen() delegates to pyscreeze library."""
         linux_screen.locate_all_on_screen()
-        linux_screen._mocks["pyscreeze"].locateAllOnScreen.assert_called_once()
+        linux_screen._take_screenshot.assert_called_once()
+        linux_screen._mocks["pyscreeze"].locateAll.assert_called_once()
+
+        linux_screen._mocks["pyscreeze"].locateAllOnScreen.assert_not_called()
 
     def test_locate_center_on_screen_delegate(self, linux_screen):
-        """Call locate_center_on_screen() delegates to pyscreeze library."""
+        """Call locate_center_on_screen() delegates to locate pyscreeze library."""
         linux_screen.locate_center_on_screen()
-        linux_screen._mocks["pyscreeze"].locateCenterOnScreen.assert_called_once()
+        linux_screen._take_screenshot.assert_called_once()
+        linux_screen._mocks["pyscreeze"].locate.assert_called_once()
+        # linux_screen.center.assert_called_once()
+
+        linux_screen._mocks["pyscreeze"].locateCenterOnScreen.assert_not_called()
 
     def test_locate_on_screen_delegate(self, linux_screen):
-        """Call locate_on_screen() delegates to pyscreeze library."""
+        """Call locate_on_screen() delegates to locate pyscreeze library."""
         linux_screen.locate_on_screen()
-        linux_screen._mocks["pyscreeze"].locateOnScreen.assert_called_once()
+        linux_screen._take_screenshot.assert_called_once()
+        linux_screen._mocks["pyscreeze"].locate.assert_called_once()
+
+        linux_screen._mocks["pyscreeze"].locateOnScreen.assert_not_called()
 
     def test_locate_on_window_delegate(self, linux_screen):
         """Call locate_on_window() delegates to pyscreeze library."""
@@ -55,11 +65,6 @@ class TestLinuxScreenDelegatesToPyScreeze:
         linux_screen.pixel_matches_color()
         linux_screen._mocks["pyscreeze"].pixelMatchesColor.assert_called_once()
 
-    def test_screenshot_delegate(self, linux_screen):
-        """Call screenshot() delegates to pyscreeze library."""
-        linux_screen.screenshot()
-        linux_screen._mocks["pyscreeze"].screenshot.assert_called_once()
-
     @pytest.mark.parametrize("test_case", [
         SimpleNamespace(func_name="locate",
                         func_name_lib="locate",
@@ -71,21 +76,6 @@ class TestLinuxScreenDelegatesToPyScreeze:
                         input_kwargs={"needle_image": "a.png", "haystack_image": "b.png"},
                         expected_kwargs={"needleImage": "a.png", "haystackImage": "b.png"},
         ),
-        SimpleNamespace(func_name="locate_all_on_screen",
-                        func_name_lib="locateAllOnScreen",
-                        input_kwargs={"image": "a.png"},
-                        expected_kwargs={"image": "a.png"},
-        ),
-        SimpleNamespace(func_name="locate_center_on_screen",
-                        func_name_lib="locateCenterOnScreen",
-                        input_kwargs={"image": "a.png"},
-                        expected_kwargs={"image": "a.png"},
-        ),
-        SimpleNamespace(func_name="locate_on_screen",
-                        func_name_lib="locateOnScreen",
-                        input_kwargs={"image": "a.png", "min_search_time": 4.2},
-                        expected_kwargs={"image": "a.png", "minSearchTime": 4.2},
-        ),
         SimpleNamespace(func_name="locate_on_window",
                         func_name_lib="locateOnWindow",
                         input_kwargs={"image": "a.png", "title": "Title"},
@@ -96,11 +86,6 @@ class TestLinuxScreenDelegatesToPyScreeze:
                         input_kwargs={"x": 10, "y": 20, "expected_color": (1,2,3), "tolerance": 1},
                         expected_kwargs={"x": 10, "y": 20, "expectedRGBColor": (1,2,3), "tolerance": 1},
         ),
-        SimpleNamespace(func_name="screenshot",
-                        func_name_lib="screenshot",
-                        input_kwargs={"image_path": "a.png", "region": (1,2,3,4)},
-                        expected_kwargs={"imageFilename": "a.png", "region": (1,2,3,4)},
-        ),
     ], ids=lambda test_case: test_case.func_name)
     def test_locate_kwargs(self, test_case, linux_screen):
         """Call locate() with kwargs should translate in pyscreeze arguments library."""
@@ -109,6 +94,34 @@ class TestLinuxScreenDelegatesToPyScreeze:
 
         func_lib = getattr(linux_screen._mocks["pyscreeze"], test_case.func_name_lib)
         func_lib.assert_called_once_with(**test_case.expected_kwargs, unexist_but="should_be_passed")
+
+
+class TestLinuxScreenScreenshot:
+    """Tests for screenshot()."""
+
+    def test_screenshot_raises_when_no_display_server_impl(self, linux_screen):
+        """screenshot() raises PyAutoGUIException if _take_screenshot raises AttributeError."""
+        from pyautogui2.utils.exceptions import PyAutoGUIException
+
+        linux_screen._take_screenshot.side_effect = AttributeError("missing method")
+
+        with pytest.raises(PyAutoGUIException, match="No display server implementation found"):
+            linux_screen.screenshot()
+
+    def test_screenshot_crops_when_region_provided(self, linux_screen):
+        """screenshot() crops the image when a region is provided."""
+        region = (10, 20, 100, 200)
+        linux_screen.screenshot(region=region)
+
+        img = linux_screen._take_screenshot.return_value
+        img.crop.assert_called_once_with((10, 20, 110, 220))  # left+width, top+height
+
+    def test_screenshot_saves_when_filename_provided(self, linux_screen):
+        """screenshot() saves the image when image_filename is provided."""
+        linux_screen.screenshot(image_filename="out.png")
+
+        img = linux_screen._take_screenshot.return_value
+        img.save.assert_called_once_with("out.png")
 
 
 class TestLinuxScreenImageNotFoundException:
@@ -139,7 +152,7 @@ class TestLinuxScreenImageNotFoundException:
     def test_locate_all_on_screen_raise(self, linux_screen):
         """Call locate_all_on_screen() should delegates pyscreeze.ImageNotFoundException to pyautogui2.ImageNotFoundException."""
         pyscreeze_exception = linux_screen._mocks["pyscreeze"].ImageNotFoundException
-        linux_screen._mocks["pyscreeze"].locateAllOnScreen.side_effect = pyscreeze_exception("Image not found")
+        linux_screen._mocks["pyscreeze"].locateAll.side_effect = pyscreeze_exception("Image not found")
         with pytest.raises(ImageNotFoundException, match="^$") as exc_info:
             linux_screen.locate_all_on_screen()
 
@@ -150,7 +163,7 @@ class TestLinuxScreenImageNotFoundException:
     def test_locate_center_on_screen_raise(self, linux_screen):
         """Call locate_center_on_screen() should delegates pyscreeze.ImageNotFoundException to pyautogui2.ImageNotFoundException."""
         pyscreeze_exception = linux_screen._mocks["pyscreeze"].ImageNotFoundException
-        linux_screen._mocks["pyscreeze"].locateCenterOnScreen.side_effect = pyscreeze_exception("Image not found")
+        linux_screen._mocks["pyscreeze"].locate.side_effect = pyscreeze_exception("Image not found")
         with pytest.raises(ImageNotFoundException, match="^$") as exc_info:
             linux_screen.locate_center_on_screen()
 
@@ -161,7 +174,7 @@ class TestLinuxScreenImageNotFoundException:
     def test_locate_on_screen_raise(self, linux_screen):
         """Call locate_on_screen() should delegates pyscreeze.ImageNotFoundException to pyautogui2.ImageNotFoundException."""
         pyscreeze_exception = linux_screen._mocks["pyscreeze"].ImageNotFoundException
-        linux_screen._mocks["pyscreeze"].locateOnScreen.side_effect = pyscreeze_exception("Image not found")
+        linux_screen._mocks["pyscreeze"].locate.side_effect = pyscreeze_exception("Image not found")
         with pytest.raises(ImageNotFoundException, match="^$") as exc_info:
             linux_screen.locate_on_screen()
 

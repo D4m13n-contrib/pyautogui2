@@ -153,8 +153,8 @@ Thumbs.db
 *.gif
 
 # Exceptions:
-!docs/*.png
-!docs/*.jpg
+!docs/**/*.png
+!docs/**/*.jpg
 !tests/fixtures/**/*.png
 !tests/fixtures/**/*.jpg
 !tests/mocks/lib/

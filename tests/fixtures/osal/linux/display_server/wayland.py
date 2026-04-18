@@ -88,7 +88,7 @@ def linux_ds_wayland_keyboard(isolated_linux_wayland):
 
 
 @pytest.fixture
-def linux_ds_wayland_screen(isolated_linux_wayland, isolated_lib_pyscreeze, isolated_lib_pygetwindow):
+def linux_ds_wayland_screen(isolated_linux_wayland, isolated_lib_pyscreeze, isolated_lib_pygetwindow, isolated_lib_gi):
     """LinuxScreen with Wayland Display Server (mocked UInput).
 
     Returns:
@@ -107,6 +107,7 @@ def linux_ds_wayland_screen(isolated_linux_wayland, isolated_lib_pyscreeze, isol
     libs = {
         "pyscreeze": isolated_lib_pyscreeze,
         "pygetwindow": isolated_lib_pygetwindow,
+        "gi": isolated_lib_gi,
     }
 
     with clean_linux_osal_ctx("screen", cls_parts, isolated_linux_wayland._mocks | libs) as screen:

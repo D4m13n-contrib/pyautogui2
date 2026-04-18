@@ -22,6 +22,7 @@ digraph {
 	}
 	subgraph cluster_3 {
 		color="#CCCCCC" fillcolor="#F8F9F9" fontname=Helvetica fontsize=9 label="lib.py" style="rounded,filled"
+		isolated_lib_gi [label=isolated_lib_gi color="#7F8C8D" fillcolor="#D5DBDB" penwidth=1 style=filled]
 		isolated_lib_mouseinfo [label=isolated_lib_mouseinfo color="#7F8C8D" fillcolor="#D5DBDB" penwidth=1 style=filled]
 		isolated_lib_pygetwindow [label=isolated_lib_pygetwindow color="#7F8C8D" fillcolor="#D5DBDB" penwidth=1 style=filled]
 		isolated_lib_pymsgbox [label=isolated_lib_pymsgbox color="#7F8C8D" fillcolor="#D5DBDB" penwidth=1 style=filled]
@@ -115,7 +116,7 @@ digraph {
 					linux_ds_wayland_dialogs [label="-- linux_ds_wayland_dialogs --" color="#E74C3C" fillcolor="#FAD7A0" penwidth=2 style="filled,bold"]
 					linux_ds_wayland_keyboard [label=linux_ds_wayland_keyboard color="#E67E22" fillcolor="#FAD7A0" penwidth=1 style=filled]
 					linux_ds_wayland_pointer [label=linux_ds_wayland_pointer color="#E67E22" fillcolor="#FAD7A0" penwidth=1 style=filled]
-					linux_ds_wayland_screen [label="-- linux_ds_wayland_screen --" color="#E74C3C" fillcolor="#FAD7A0" penwidth=2 style="filled,bold"]
+					linux_ds_wayland_screen [label=linux_ds_wayland_screen color="#E67E22" fillcolor="#FAD7A0" penwidth=1 style=filled]
 				}
 				subgraph cluster_22 {
 					color="#CCCCCC" fillcolor="#F8F9F9" fontname=Helvetica fontsize=9 label="x11.py" style="rounded,filled"
@@ -241,6 +242,7 @@ digraph {
 	isolated_linux_wayland -> linux_ds_wayland_screen [color="#E67E2299"]
 	isolated_lib_pyscreeze -> linux_ds_wayland_screen [color="#7F8C8D99"]
 	isolated_lib_pygetwindow -> linux_ds_wayland_screen [color="#7F8C8D99"]
+	isolated_lib_gi -> linux_ds_wayland_screen [color="#7F8C8D99"]
 	isolated_linux_x11 -> linux_ds_x11_dialogs [color="#E67E2299"]
 	isolated_lib_pymsgbox -> linux_ds_x11_dialogs [color="#7F8C8D99"]
 	isolated_linux_x11 -> linux_ds_x11_keyboard [color="#E67E2299"]
@@ -287,6 +289,7 @@ digraph {
 	failsafe_manager_real -> __used__ [color="#27AE60" style=dashed]
 	gnome_shell_backend_real -> __used__ [color="#27AE60" style=dashed]
 	isolated_linux -> __used__ [color="#27AE60" style=dashed]
+	isolated_linux_wayland -> __used__ [color="#27AE60" style=dashed]
 	isolated_macos -> __used__ [color="#27AE60" style=dashed]
 	isolated_settings -> __used__ [color="#27AE60" style=dashed]
 	isolated_singleton -> __used__ [color="#27AE60" style=dashed]
@@ -302,6 +305,7 @@ digraph {
 	linux_ds_wayland_co_gnome_shell_screen -> __used__ [color="#27AE60" style=dashed]
 	linux_ds_wayland_keyboard -> __used__ [color="#27AE60" style=dashed]
 	linux_ds_wayland_pointer -> __used__ [color="#27AE60" style=dashed]
+	linux_ds_wayland_screen -> __used__ [color="#27AE60" style=dashed]
 	linux_ds_x11_keyboard -> __used__ [color="#27AE60" style=dashed]
 	linux_ds_x11_pointer -> __used__ [color="#27AE60" style=dashed]
 	linux_ds_x11_screen -> __used__ [color="#27AE60" style=dashed]

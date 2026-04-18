@@ -1,12 +1,16 @@
 """X11ScreenPart - Display server part for all Linux screens."""
 import os
 
-from typing import Any, Optional
+from typing import TYPE_CHECKING, Any, Optional
 
 from .....utils.exceptions import PyAutoGUIException
 from .....utils.lazy_import import lazy_import
 from .....utils.types import Size
 from ....abstract_cls import AbstractScreen
+
+
+if TYPE_CHECKING:
+    from PIL import Image
 
 
 class X11ScreenPart(AbstractScreen):
@@ -21,12 +25,9 @@ class X11ScreenPart(AbstractScreen):
         - Removes default decorators from get_size() and get_size_max() to
           provide X11-native implementations without overhead
         - Lazy loads Xlib to avoid dependency issues on non-X11 systems
-
-    Attributes:
-        __abstractmethod_remove_decorators__: Configuration to bypass default
-            decorators on size-related methods for direct X11 queries.
     """
 
+    _pyscreeze = lazy_import("pyscreeze")
     _xlib = lazy_import("Xlib")
     _xlib_display = lazy_import("Xlib.display")
 
@@ -46,6 +47,11 @@ class X11ScreenPart(AbstractScreen):
         self._display = self._xlib_display.Display(os.environ['DISPLAY'])
         if self._display is None:
            raise PyAutoGUIException("Error: Cannot obtain Display")
+
+    def _take_screenshot(self) -> "Image.Image":
+        pyscreeze = self._pyscreeze
+        img: Image.Image = pyscreeze.screenshot()
+        return img
 
     def get_size(self) -> Size:
         """Get the size of the primary X11 screen.

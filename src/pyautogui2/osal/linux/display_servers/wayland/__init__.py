@@ -70,10 +70,12 @@ def get_wayland_osal_parts() -> dict[str, type[Any]]:
     # Required to be know by locals() calls below
     from .keyboard import WaylandKeyboardPart  # noqa: F401
     from .pointer import WaylandPointerPart  # noqa: F401
+    from .screen import WaylandScreenPart  # noqa: F401
 
     wayland_parts = {
         "pointer": WaylandPointerPart,
         "keyboard": WaylandKeyboardPart,
+        "screen": WaylandScreenPart,
     }
 
     backend_parts = get_wayland_compositor_osal_parts()

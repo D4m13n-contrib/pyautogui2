@@ -1,5 +1,7 @@
 """Fixtures for Mocked external libraries (PyScreeze, PyMsgBox, etc.)."""
 
+from unittest.mock import MagicMock
+
 import pytest
 
 
@@ -91,9 +93,40 @@ def isolated_lib_mouseinfo():
             sys.modules[key] = value
 
 
+@pytest.fixture
+def isolated_lib_gi():
+    """Mock gi (Gio, GLib)."""
+    import sys
+
+    original_modules = {
+        "gi": sys.modules.get("gi"),
+        "gi.repository": sys.modules.get("gi.repository"),
+    }
+
+    # Mocks MockGio / MockGLib
+    from tests.mocks.osal.linux.mock_gio_glib import MockGio, MockGLib
+    mock_gio = MockGio()
+    mock_glib = MockGLib()
+
+    mock_gi_repository = MagicMock()
+    mock_gi_repository.Gio = mock_gio
+    mock_gi_repository.GLib = mock_glib
+
+    sys.modules["gi"] = MagicMock()
+    sys.modules["gi.repository"] = mock_gi_repository
+
+    try:
+        yield mock_gi_repository
+    finally:
+        # Restore modules
+        for key, value in original_modules.items():
+            sys.modules[key] = value
+
+
 __all__ = [
     "isolated_lib_pyscreeze",
     "isolated_lib_pymsgbox",
     "isolated_lib_pygetwindow",
     "isolated_lib_mouseinfo",
+    "isolated_lib_gi",
 ]

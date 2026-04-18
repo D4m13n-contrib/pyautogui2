@@ -40,6 +40,28 @@ For example, GNOME Shell uses a dedicated shell extension communicating over
 D-Bus. Other compositors may provide native APIs or protocols that make an
 extension unnecessary.
 
+### Screenshot capture — xdg-desktop-portal
+
+Unlike X11, Wayland does not allow applications to capture the screen directly.
+PyAutoGUI2 does **not** use [pyscreeze](https://github.com/asweigart/pyscreeze)
+screenshot on Wayland. Instead, it uses the
+[xdg-desktop-portal](https://flatpak.github.io/xdg-desktop-portal/) D-Bus API,
+which provides a standardized, permission-gated screenshot interface supported
+by all major Wayland compositors.
+
+```
+PyAutoGUI2 → xdg-desktop-portal → compositor screenshot API → PIL Image
+```
+
+The first time a screenshot is requested, the compositor displays a **one-time
+authorization dialog** asking the user to grant screen capture permission to the
+application. Once granted, the permission is remembered for the current session
+— the dialog will not appear again.
+
+> **Important:** If the user denies the permission, all features that rely on
+> screenshots (screen capture, image-based location, pixel reading) will be
+> unavailable. There is no fallback mechanism.
+
 ---
 
 ## Compositor Support
@@ -160,6 +182,55 @@ gdbus call \
 
 ---
 
+### xdg-desktop-portal
+
+`xdg-desktop-portal` is required on all Wayland configurations for screenshot
+functionality. It must be installed along with the backend specific to your
+compositor.
+
+**Supported on:** all Wayland compositors listed in the [Compositor Support](#compositor-support) table.
+
+**1. Install xdg-desktop-portal and the compositor-specific backend**
+
+```bash
+# GNOME Shell
+sudo apt install xdg-desktop-portal xdg-desktop-portal-gnome   # Debian / Ubuntu / Mint
+sudo dnf install xdg-desktop-portal xdg-desktop-portal-gnome   # Fedora
+sudo pacman -S xdg-desktop-portal xdg-desktop-portal-gnome     # Arch
+
+# KDE Plasma (when supported)
+sudo apt install xdg-desktop-portal xdg-desktop-portal-kde
+sudo dnf install xdg-desktop-portal xdg-desktop-portal-kde
+sudo pacman -S xdg-desktop-portal xdg-desktop-portal-kde
+```
+
+> Install the backend that matches your compositor. Installing the wrong backend
+> may result in the portal failing silently.
+
+**2. Verify the portal is running**
+
+```bash
+gdbus call \
+  --session \
+  --dest org.freedesktop.portal.Desktop \
+  --object-path /org/freedesktop/portal/desktop \
+  --method org.freedesktop.DBus.Introspectable.Introspect
+# Expected: a long XML string describing the portal interface
+```
+
+**3. Grant screen capture permission**
+
+The first time PyAutoGUI2 takes a screenshot, the compositor will display an
+authorization dialog:
+
+![Screenshot authorization dialog](screenshot_auth_confirmation.png)
+
+Click **Allow** to grant permission. This dialog appears only once.
+
+> **If you click Deny**, screenshot-based features will be unavailable.
+
+---
+
 ## Known Limitations
 
 **UInput requires kernel-level access**
@@ -181,6 +252,15 @@ supported. Check your version with:
 ```bash
 gnome-shell --version
 ```
+
+**Screenshot permission must be granted interactively**
+
+On Wayland, screen capture requires explicit user authorization through the
+compositor's portal dialog. This dialog appears once, at the first
+screenshot request. There is no way to pre-grant this permission
+programmatically or suppress the dialog (for security reasons).
+Automated environments (CI, headless sessions) cannot use screenshot-based
+features unless the compositor supports persistent portal tokens.
 
 ---
 
@@ -236,6 +316,41 @@ If the call fails, check the GNOME Shell logs:
 ```bash
 journalctl /usr/bin/gnome-shell -f
 ```
+
+---
+
+**Screenshot permission was denied**
+
+If you clicked *Deny* in the authorization dialog, screenshot-based features
+will fail. Go to Privacy settings to reset the permission
+state and be prompted again.
+
+If the dialog never appeared (portal not running), verify that
+`xdg-desktop-portal` and the compositor-specific backend are installed and
+running:
+
+```bash
+# Check that the portal service is active
+systemctl --user status xdg-desktop-portal
+
+# Check that the compositor backend is active (example: GNOME)
+systemctl --user status xdg-desktop-portal-gnome
+```
+
+See [xdg-desktop-portal setup](#xdg-desktop-portal) for installation instructions.
+
+---
+
+**`org.freedesktop.portal.Screenshot` not available**
+
+The installed portal backend does not support the Screenshot interface, or no
+backend is installed for your compositor. Verify which backend is active:
+
+```bash
+systemctl --user list-units | grep xdg-desktop-portal
+```
+
+Install the backend matching your compositor (see [xdg-desktop-portal setup](#xdg-desktop-portal)).
 
 ---
 

@@ -37,3 +37,12 @@ class TestX11ScreenPartGetsizeMax:
 
         assert isinstance(result, Size)
         assert result == Size(1920, 1080)
+
+
+class TestX11ScreenPartScreenshot:
+    """Tests for X11 _take_screenshot() function."""
+
+    def test_take_screenshot_success(self, linux_ds_x11_screen):
+        """take_screenshot() calls should delegates to pyscreeze screenshot function."""
+        _ = linux_ds_x11_screen._take_screenshot()
+        linux_ds_x11_screen._mocks["pyscreeze"].screenshot.assert_called_once()

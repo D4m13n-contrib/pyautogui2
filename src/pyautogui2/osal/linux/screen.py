@@ -1,9 +1,16 @@
 """LinuxScreenPart - Base part for all Linux screens."""
 import functools
 
-from ...utils.exceptions import ImageNotFoundException
+from typing import TYPE_CHECKING, Optional
+
+from ...utils.exceptions import ImageNotFoundException, PyAutoGUIException
 from ...utils.lazy_import import lazy_import
+from ...utils.types import Box
 from ..abstract_cls import AbstractScreen
+
+
+if TYPE_CHECKING:
+    from PIL import Image
 
 
 class LinuxScreenPart(AbstractScreen):
@@ -75,20 +82,17 @@ class LinuxScreenPart(AbstractScreen):
         pyscreeze = self._pyscreeze
         return pyscreeze.locateAll(*args, **kwargs)
 
-    @_wrap_pyscreeze
     def locate_all_on_screen(self, *args, **kwargs):
-        pyscreeze = self._pyscreeze
-        return pyscreeze.locateAllOnScreen(*args, **kwargs)
+        haystack = self.screenshot()
+        return self.locate_all(*args, haystack=haystack, **kwargs)
 
-    @_wrap_pyscreeze
     def locate_center_on_screen(self, *args, **kwargs):
-        pyscreeze = self._pyscreeze
-        return pyscreeze.locateCenterOnScreen(*args, **kwargs)
+        found = self.locate_on_screen(*args, **kwargs)
+        return self.center(found)
 
-    @_wrap_pyscreeze
     def locate_on_screen(self, *args, **kwargs):
-        pyscreeze = self._pyscreeze
-        return pyscreeze.locateOnScreen(*args, **kwargs)
+        haystack = self.screenshot()
+        return self.locate(*args, haystack=haystack, **kwargs)
 
     @_wrap_pyscreeze
     def locate_on_window(self, *args, **kwargs):
@@ -110,10 +114,25 @@ class LinuxScreenPart(AbstractScreen):
         pyscreeze = self._pyscreeze
         return pyscreeze.pixelMatchesColor(*args, **kwargs)
 
-    @_wrap_pyscreeze
-    def screenshot(self, *args, **kwargs):
-        pyscreeze = self._pyscreeze
-        return pyscreeze.screenshot(*args, **kwargs)
+    def screenshot(self,
+                   image_filename: Optional[str] = None,
+                   region: Optional[Box] = None) -> "Image.Image":
+        try:
+            img: Image.Image = self._take_screenshot()  # type: ignore[attr-defined]  # should be provided by DS Part
+        except AttributeError as exc:
+            raise PyAutoGUIException(
+                "No display server implementation found for _take_screenshot(). "
+                "Ensure your display server part defines this method."
+            ) from exc
+
+        if region is not None:
+            left, top, width, height = region
+            img = img.crop((left, top, left + width, top + height))
+
+        if image_filename is not None:
+            img.save(image_filename)
+
+        return img
 
     def window(self, *args, **kwargs):
         pygetwindow = self._pygetwindow
