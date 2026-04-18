@@ -42,6 +42,7 @@ def get_linux_info() -> dict[str, str]:
     ).lower().removeprefix("x-").split(":")[-1]
     # Converts specific Desktop Environment to standrad name (e.g. "xubuntu" => "xfce")
     de_fallback = {
+        "ubuntu": "gnome",
         "xubuntu": "xfce",
     }
     if desktop_env in de_fallback:

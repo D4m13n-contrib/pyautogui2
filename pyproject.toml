@@ -85,7 +85,7 @@ Changelog = "https://github.com/D4m13n-contrib/pyautogui2/blob/main/CHANGELOG.md
 
 [project.scripts]
 pyautogui2-verify = "pyautogui2.utils.cli.verify:main"
-pyautogui2-install-wayland-gnomeshell-extension = "pyautogui2.osal.linux.display_servers.wayland.gnome_shell.extension.installer:main"
+pyautogui2-install-wayland-gnomeshell-extension = "pyautogui2.osal.linux.display_servers.wayland.compositor.gnome_shell.extension.installer:main"
 pyautogui2-detect-platform = "pyautogui2.osal.platform_info:main"
 
 [tool.setuptools]
