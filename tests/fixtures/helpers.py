@@ -71,9 +71,11 @@ def is_linux_de_xfce():
 
 
 # ===============================
-# Detect Linux XIM compatibility
+# Detect XIM compatibility
 # ===============================
-def is_linux_xim_compatible() -> bool:
+def is_xim_compatible() -> bool:
     """Check if an XIM-compatible input method is active."""
-    return is_linux() and "@im=" in os.environ.get("XMODIFIERS", "")
+    if is_linux():
+        return "@im=" in os.environ.get("XMODIFIERS", "")
+    return True
 

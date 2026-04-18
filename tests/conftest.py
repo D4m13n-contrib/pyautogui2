@@ -37,11 +37,15 @@ def pytest_configure(config: pytest.Config) -> None:
 
     # Patch ClientReporter before pytest-retry uses it
     try:
+        from unittest.mock import MagicMock
+
         import pytest_retry.retry_plugin as _retry_plugin
 
         class _NoOpReporter:
             def __init__(self, port: int) -> None:
                 pass
+            def __getattr__(self, _):
+                return MagicMock()
 
         _retry_plugin.ClientReporter = _NoOpReporter  # type: ignore[attr-defined]
     except (ImportError, AttributeError):

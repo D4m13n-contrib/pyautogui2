@@ -1,6 +1,4 @@
 """Tests for X11 Display Server Part providing screen functions."""
-
-
 import pytest
 
 from pyautogui2.utils.exceptions import PyAutoGUIException
