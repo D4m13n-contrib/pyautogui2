@@ -383,6 +383,23 @@ class AbstractController(_AbstractBase):
         """
         pass
 
+    # Not abstractmethod
+    def teardown_postinit(self, *_args: Any, **_kwargs: Any) -> None:
+        """Release any resources acquired during setup_postinit().
+
+        This method is the lifecycle counterpart of setup_postinit(). It is called
+        by ControllerManager.teardown() before the instance is destroyed.
+
+        Override this method in subclasses that allocate external resources during
+        setup_postinit() (e.g. UInput devices, DBus connections, file handles).
+        The base implementation is a no-op — subclasses are not required to override it.
+
+        Args:
+            *args: Forwarded from the teardown call context (currently unused).
+            **kwargs: Forwarded from the teardown call context (currently unused).
+        """
+        pass
+
 
 class AbstractOSAL(_AbstractBase):
     """Base class for OS Abstraction Layer implementations.
@@ -460,3 +477,19 @@ class AbstractOSAL(_AbstractBase):
         """
         pass
 
+    # Not abstractmethod
+    def teardown_postinit(self, *_args: Any, **_kwargs: Any) -> None:
+        """Release any resources acquired during setup_postinit().
+
+        This method is the lifecycle counterpart of setup_postinit(). It is called
+        by ControllerManager.teardown() before the instance is destroyed.
+
+        Override this method in subclasses that allocate external resources during
+        setup_postinit() (e.g. UInput devices, DBus connections, file handles).
+        The base implementation is a no-op — subclasses are not required to override it.
+
+        Args:
+            *args: Forwarded from the teardown call context (currently unused).
+            **kwargs: Forwarded from the teardown call context (currently unused).
+        """
+        pass

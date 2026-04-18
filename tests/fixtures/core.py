@@ -20,7 +20,10 @@ def clean_pyautogui(controllers: Optional[dict[str, AbstractController]] = None)
     from pyautogui2.utils.singleton import Singleton
 
     # Remove any existing singleton instance to force re-creation with our controllers
-    Singleton.remove_instance("PyAutoGUI")
+    prev_instance = Singleton._instances.get("PyAutoGUI")
+    if prev_instance is not None:
+        prev_instance.teardown()
+        Singleton.remove_instance("PyAutoGUI")
 
     controllers = {} if controllers is None else controllers
 
@@ -30,6 +33,7 @@ def clean_pyautogui(controllers: Optional[dict[str, AbstractController]] = None)
         yield instance
     finally:
         # Clean up so the next test gets a fresh instance
+        instance.teardown()
         Singleton.remove_instance("PyAutoGUI")
 
 

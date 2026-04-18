@@ -73,7 +73,7 @@ class ScreenController(AbstractScreenController):
             This method must be called during initialization for failsafe and
             screenshot features to work correctly.
         """
-        super().setup_postinit(*args, **kwargs)  # No-op but maintains inheritance chain
+        super().setup_postinit(*args, **kwargs)
         self._osal.setup_postinit(*args, **kwargs)
 
         # Add corners to FailsafeManager trigger points
@@ -85,6 +85,10 @@ class ScreenController(AbstractScreenController):
 
         # Add screenshot function to LogScreenshotManager
         LogScreenshotManager().set_screenshot_func(self.screenshot)
+
+    def teardown_postinit(self, *args, **kwargs):
+        self._osal.teardown_postinit(*args, **kwargs)
+        super().teardown_postinit(*args, **kwargs)
 
     def locate(self,
                needle_image: Union[str, "Image.Image"],

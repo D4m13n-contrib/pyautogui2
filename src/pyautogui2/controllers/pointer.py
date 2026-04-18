@@ -97,11 +97,15 @@ class PointerController(AbstractPointerController):
             - FailsafeManager().register_get_position() called globally (affects all pointer ops).
             - self._screen_controller bound (enables image-based coordinate resolution).
         """
-        super().setup_postinit(*args, **kwargs)  # No-op but maintains inheritance chain
+        super().setup_postinit(*args, **kwargs)
         self._osal.setup_postinit(*args, **kwargs)
 
         FailsafeManager().register_get_position(self._osal.get_pos)
         self._screen_controller = kwargs["controller_manager"].screen
+
+    def teardown_postinit(self, *args, **kwargs):
+        self._osal.teardown_postinit(*args, **kwargs)
+        super().teardown_postinit(*args, **kwargs)
 
 
     # --------------------------------------------------

@@ -1,4 +1,5 @@
 """Windows-specific installation tests."""
+import time
 
 import pytest
 
@@ -33,68 +34,53 @@ class TestWindowsInstallation:
         assert _common is not None
 
     @pytest.mark.real
-    def test_mouse_position(self):
+    def test_mouse_position(self, pyautogui_real):
         """Test mouse position retrieval (real system call)."""
-        from pyautogui2 import PyAutoGUI
-        gui = PyAutoGUI()
-
-        x, y = gui.pointer.get_position()
+        x, y = pyautogui_real.pointer.get_position()
         assert isinstance(x, (int, float))
         assert isinstance(y, (int, float))
         assert x >= 0
         assert y >= 0
 
     @pytest.mark.real
-    def test_screen_size(self):
+    def test_screen_size(self, pyautogui_real):
         """Test screen size retrieval (real system call)."""
-        from pyautogui2 import PyAutoGUI
-        gui = PyAutoGUI()
-
-        size = gui.screen.get_size()
+        size = pyautogui_real.screen.get_size()
         assert size.width > 0
         assert size.height > 0
 
     @pytest.mark.real
-    def test_mouse_move(self):
+    def test_mouse_move(self, pyautogui_real):
         """Test mouse movement (real system action)."""
-        from pyautogui2 import PyAutoGUI
-        gui = PyAutoGUI()
-
         # Force stable position before test
-        gui.pointer.move_to(100, 100)
+        pyautogui_real.pointer.move_to(100, 100)
 
         # Get current position
-        x1, y1 = gui.pointer.get_position()
+        x1, y1 = pyautogui_real.pointer.get_position()
 
         # Move to new position
         target_x, target_y = x1 + 10, y1 + 10
-        gui.pointer.move_to(target_x, target_y)
+        pyautogui_real.pointer.move_to(target_x, target_y)
 
         # Verify movement
-        x2, y2 = gui.pointer.get_position()
+        x2, y2 = pyautogui_real.pointer.get_position()
         assert x2 == target_x
         assert y2 == target_y
 
         # Move back
-        gui.pointer.move_to(x1, y1)
+        pyautogui_real.pointer.move_to(x1, y1)
 
     @pytest.mark.real
-    def test_keyboard_typing(self):
+    def test_keyboard_typing(self, pyautogui_real):
         """Test keyboard typing (real system action - basic check)."""
-        from pyautogui2 import PyAutoGUI
-        gui = PyAutoGUI()
-
         # Just verify the method exists and doesn't crash
         # (actual typing test would require a text field)
-        assert hasattr(gui.keyboard, 'write')
+        assert hasattr(pyautogui_real.keyboard, 'write')
 
     @pytest.mark.real
-    def test_screenshot(self):
+    def test_screenshot(self, pyautogui_real):
         """Test screenshot functionality (real system call)."""
-        from pyautogui2 import PyAutoGUI
-        gui = PyAutoGUI()
-
-        screenshot = gui.screen.screenshot()
+        screenshot = pyautogui_real.screen.screenshot()
         assert screenshot is not None
         assert screenshot.width > 0
         assert screenshot.height > 0
@@ -110,31 +96,24 @@ class TestWindowsInputSimulation:
         assert send_input is not None
 
     @pytest.mark.real
-    def test_vk_codes_available(self):
+    def test_vk_codes_available(self, pyautogui_real):
         """Test that virtual key codes are defined."""
-        from pyautogui2.osal.windows.keyboard import WindowsKeyboard
-        keyboard = WindowsKeyboard()
+        keyboard = pyautogui_real.keyboard
 
         # Check some common VK codes exist
         assert hasattr(keyboard, '_key_to_vk') or hasattr(keyboard, 'keyboardMapping')
 
     @pytest.mark.real
-    def test_mouse_click(self):
+    def test_mouse_click(self, pyautogui_real):
         """Test mouse click (real system action - be careful!)."""
-        import time
-
-        from pyautogui2 import PyAutoGUI
-
-        gui = PyAutoGUI()
-
         # Get current position (don't click anywhere dangerous)
-        x, y = gui.pointer.get_position()
+        x, y = pyautogui_real.pointer.get_position()
 
         # Small delay to allow user to move mouse if needed
         time.sleep(0.5)
 
         # Click at safe location (current position)
-        gui.pointer.click(x, y, button='left', clicks=1)
+        pyautogui_real.pointer.click(x, y, button='left', clicks=1)
 
         # Verify no crash
         assert True
@@ -150,14 +129,11 @@ class TestWindowsDPIAwareness:
         assert ensure_dpi_aware is not None
 
     @pytest.mark.real
-    def test_screen_coordinates_accurate(self):
+    def test_screen_coordinates_accurate(self, pyautogui_real):
         """Test that screen coordinates account for DPI scaling."""
-        from pyautogui2 import PyAutoGUI
-        gui = PyAutoGUI()
-
         # Get mouse position at corner
-        gui.pointer.move_to(1, 1)
-        x, y = gui.pointer.get_position()
+        pyautogui_real.pointer.move_to(1, 1)
+        x, y = pyautogui_real.pointer.get_position()
 
         # Should be at/near origin (accounting for DPI)
         assert x <= 5

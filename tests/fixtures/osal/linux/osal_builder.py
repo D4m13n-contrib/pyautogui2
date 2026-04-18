@@ -42,3 +42,6 @@ def clean_linux_osal_ctx(component: str, osal_cls_parts: list[type],
         for mock in chain(osal._mocks.values(), attr_mocks.values()):
             if mock is not None:
                 mock.reset_mock()
+
+        # Teardown OSAL
+        osal.teardown_postinit()

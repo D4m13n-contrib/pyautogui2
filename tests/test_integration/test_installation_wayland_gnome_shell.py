@@ -38,23 +38,17 @@ class TestWaylandGnomeShell:
             "GNOME Shell extension not enabled (run: gnome-extensions enable gnome-wayland@pyautogui.org)"
 
     @pytest.mark.real
-    def test_mouse_position(self):
+    def test_mouse_position(self, pyautogui_real):
         """Test mouse position retrieval (real system call - validates extension)."""
-        from pyautogui2 import PyAutoGUI
-        gui = PyAutoGUI()
-
-        x, y = gui.pointer.get_position()
+        x, y = pyautogui_real.pointer.get_position()
         assert isinstance(x, (int, float))
         assert isinstance(y, (int, float))
         assert x >= 0
         assert y >= 0
 
     @pytest.mark.real
-    def test_screen_size(self):
+    def test_screen_size(self, pyautogui_real):
         """Test screen size retrieval (real system call - validates extension)."""
-        from pyautogui2 import PyAutoGUI
-        gui = PyAutoGUI()
-
-        size = gui.screen.get_size()
+        size = pyautogui_real.screen.get_size()
         assert size.width > 0
         assert size.height > 0

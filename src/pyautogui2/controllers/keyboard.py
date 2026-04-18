@@ -242,13 +242,17 @@ class KeyboardController(AbstractKeyboardController):
             - Injects class-level keyboard configuration into OSAL.
             - Enables OSAL to perform layout-specific key mapping.
         """
-        super().setup_postinit(*args, **kwargs)  # No-op but maintains inheritance chain
+        super().setup_postinit(*args, **kwargs)
 
         kwargs.update({
             "key_names": self.KEY_NAMES,
             "all_keymapping": self.KEYBOARD_MAPPINGS,
         })
         self._osal.setup_postinit(*args, **kwargs)
+
+    def teardown_postinit(self, *args, **kwargs):
+        self._osal.teardown_postinit(*args, **kwargs)
+        super().teardown_postinit(*args, **kwargs)
 
     def get_layout(self, **_kwargs) -> str:
         return self._osal.get_layout()

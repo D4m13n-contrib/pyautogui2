@@ -43,8 +43,12 @@ class DialogsController(AbstractDialogsController):
         self._osal = osal
 
     def setup_postinit(self, *args, **kwargs):
-        super().setup_postinit(*args, **kwargs)  # No-op but maintains inheritance chain
+        super().setup_postinit(*args, **kwargs)
         self._osal.setup_postinit(*args, **kwargs)
+
+    def teardown_postinit(self, *args, **kwargs):
+        self._osal.teardown_postinit(*args, **kwargs)
+        super().teardown_postinit(*args, **kwargs)
 
     def alert(self,
               text: str = '', title: str = '', button: str = 'OK',

@@ -49,30 +49,29 @@ class TestWaylandInstallation:
             pytest.skip("uinput group doesn't exist (might not be required on this system)")
 
     @pytest.mark.real
-    def test_mouse_move(self):
+    def test_mouse_move(self, pyautogui_real):
         """Test mouse movement (real system action - validates UInput)."""
         import time
 
-        from pyautogui2 import PyAutoGUI
-        gui = PyAutoGUI()
-
         # Force stable position before test
-        gui.pointer.move_to(100, 100)
+        pyautogui_real.pointer.move_to(100, 100)
 
         # Get current position
-        x1, y1 = gui.pointer.get_position()
+        x1, y1 = pyautogui_real.pointer.get_position()
+        assert x1 == 100
+        assert y1 == 100
 
         # Move to new position
         target_x, target_y = x1 + 10, y1 + 10
-        gui.pointer.move_to(target_x, target_y)
+        pyautogui_real.pointer.move_to(target_x, target_y)
 
         # Wait movement is effective
         time.sleep(0.1)
 
         # Verify movement
-        x2, y2 = gui.pointer.get_position()
+        x2, y2 = pyautogui_real.pointer.get_position()
         assert x2 == target_x
         assert y2 == target_y
 
         # Move back
-        gui.pointer.move_to(x1, y1)
+        pyautogui_real.pointer.move_to(x1, y1)

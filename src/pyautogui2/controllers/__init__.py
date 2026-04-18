@@ -1,4 +1,6 @@
 """Controller manager."""
+import atexit
+
 from typing import Optional
 
 from ..osal import get_osal
@@ -40,6 +42,20 @@ class ControllerManager(metaclass=Singleton):
         self._pointer.setup_postinit(**setup_context)
         self._keyboard.setup_postinit(**setup_context)
         self._dialogs.setup_postinit(**setup_context)
+
+        atexit.register(self.teardown)
+
+    def teardown(self) -> None:
+        """Tear down all controllers in reverse setup order.
+
+        Calls teardown_postinit() on each controller in the reverse order of
+        setup_postinit() calls, ensuring dependencies are released cleanly.
+        Must be called before removing the ControllerManager singleton instance.
+        """
+        self._pointer.teardown_postinit()
+        self._keyboard.teardown_postinit()
+        self._screen.teardown_postinit()
+        self._dialogs.teardown_postinit()
 
     @property
     def pointer(self) -> PointerController:

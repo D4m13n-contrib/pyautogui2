@@ -7,49 +7,39 @@ import pytest
 class TestCommonInstallation:
     """Tests that should pass on all platforms."""
 
-    def test_import_pyautogui2(self):
+    def test_import_pyautogui2(self, pyautogui_real):
         """Test that pyautogui2 can be imported."""
         from pyautogui2 import PyAutoGUI
         assert PyAutoGUI is not None
 
-    def test_create_instance(self):
+    def test_create_instance(self, pyautogui_real):
         """Test that PyAutoGUI instance can be created."""
-        from pyautogui2 import PyAutoGUI
-        gui = PyAutoGUI()
-        assert gui is not None
+        assert pyautogui_real is not None
 
-    def test_controllers_exist(self):
+    def test_controllers_exist(self, pyautogui_real):
         """Test that all controllers are accessible."""
-        from pyautogui2 import PyAutoGUI
-        gui = PyAutoGUI()
-        assert hasattr(gui, 'pointer')
-        assert hasattr(gui, 'keyboard')
-        assert hasattr(gui, 'screen')
-        assert hasattr(gui, 'dialogs')
+        assert hasattr(pyautogui_real, 'pointer')
+        assert hasattr(pyautogui_real, 'keyboard')
+        assert hasattr(pyautogui_real, 'screen')
+        assert hasattr(pyautogui_real, 'dialogs')
 
-    def test_mouse_position(self):
+    def test_mouse_position(self, pyautogui_real):
         """Test mouse position retrieval (real system call)."""
-        from pyautogui2 import PyAutoGUI
-        gui = PyAutoGUI()
-        x, y = gui.pointer.get_position()
+        x, y = pyautogui_real.pointer.get_position()
         assert isinstance(x, (int, float))
         assert isinstance(y, (int, float))
         assert x >= 0
         assert y >= 0
 
-    def test_screen_size(self):
+    def test_screen_size(self, pyautogui_real):
         """Test screen size retrieval (real system call)."""
-        from pyautogui2 import PyAutoGUI
-        gui = PyAutoGUI()
-        size = gui.screen.get_size()
+        size = pyautogui_real.screen.get_size()
         assert size.width > 0
         assert size.height > 0
 
-    def test_keyboard_layout(self):
+    def test_keyboard_layout(self, pyautogui_real):
         """Test keyboard layout retrieval (real system call)."""
-        from pyautogui2 import PyAutoGUI
-        gui = PyAutoGUI()
-        layout = gui.keyboard.get_layout()
+        layout = pyautogui_real.keyboard.get_layout()
         assert len(layout) > 0
 
 
