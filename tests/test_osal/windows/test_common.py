@@ -8,46 +8,31 @@ class TestIsLegacyWindows:
     def test_no_getwindowsversion(self, isolated_windows):
         from pyautogui2.osal.windows._common import is_legacy_windows
 
-        user32 = MagicMock()
         with patch("pyautogui2.osal.windows._common.sys", spec=[]):
-            assert is_legacy_windows(user32) is True
+            assert is_legacy_windows() is True
 
     def test_major_less_than_6(self, isolated_windows):
         from pyautogui2.osal.windows._common import is_legacy_windows
 
-        user32 = MagicMock()
         fake_ver = MagicMock(major=5, minor=1)
         with patch("pyautogui2.osal.windows._common.sys") as mock_sys:
             mock_sys.getwindowsversion.return_value = fake_ver
-            assert is_legacy_windows(user32) is True
+            assert is_legacy_windows() is True
 
-    def test_send_input_returns_zero(self, isolated_windows):
+    def test_major_greater_than_6(self, isolated_windows):
         from pyautogui2.osal.windows._common import is_legacy_windows
 
-        user32 = MagicMock()
-        user32.SendInput.return_value = 0
-        fake_ver = MagicMock(major=10, minor=0)
+        fake_ver = MagicMock(major=6, minor=0)
         with patch("pyautogui2.osal.windows._common.sys") as mock_sys:
             mock_sys.getwindowsversion.return_value = fake_ver
-            assert is_legacy_windows(user32) is True
-
-    def test_send_input_returns_nonzero(self, isolated_windows):
-        from pyautogui2.osal.windows._common import is_legacy_windows
-
-        user32 = MagicMock()
-        user32.SendInput.return_value = 1
-        fake_ver = MagicMock(major=10, minor=0)
-        with patch("pyautogui2.osal.windows._common.sys") as mock_sys:
-            mock_sys.getwindowsversion.return_value = fake_ver
-            assert is_legacy_windows(user32) is False
+            assert is_legacy_windows() is False
 
     def test_exception_returns_true(self, isolated_windows):
         from pyautogui2.osal.windows._common import is_legacy_windows
 
-        user32 = MagicMock()
         with patch("pyautogui2.osal.windows._common.sys") as mock_sys:
             mock_sys.getwindowsversion.side_effect = RuntimeError("boom")
-            assert is_legacy_windows(user32) is True
+            assert is_legacy_windows() is True
 
 
 class TestEnsureDpiAware:

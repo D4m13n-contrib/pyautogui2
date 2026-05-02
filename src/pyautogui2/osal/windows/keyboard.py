@@ -408,7 +408,7 @@ class WindowsKeyboard(AbstractKeyboard):
 
     def _is_legacy(self):
         if self._legacy_mode is None:
-            self._legacy_mode = is_legacy_windows(self._kernel32)
+            self._legacy_mode = is_legacy_windows()
             if self._legacy_mode:
                 logging.warning("WindowsKeyboard: legacy mode enabled (Unicode injection may be limited)")
 

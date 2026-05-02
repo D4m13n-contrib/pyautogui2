@@ -86,7 +86,7 @@ class MONITORINFO(ctypes.Structure):
 
 # --- Utilities ---
 
-def is_legacy_windows(user32) -> bool:
+def is_legacy_windows() -> bool:
     """Decide whether to operate in legacy mode:
     - True if Windows version < 6 (XP and older).
     - else test SendInput with a harmless call.
@@ -100,13 +100,6 @@ def is_legacy_windows(user32) -> bool:
         ver = sys.getwindowsversion()
         if ver.major < 6:
             logging.debug(f"Windows version {ver.major}.{ver.minor} -> legacy True")
-            return True
-
-        inp = INPUT()
-        # SendInput with nInputs=0 is harmless, but some systems require a real check:
-        n = user32.SendInput(0, ctypes.byref(inp), ctypes.sizeof(INPUT))
-        if n == 0:
-            logging.debug("SendInput test returned 0 -> legacy True")
             return True
 
     except Exception as e:

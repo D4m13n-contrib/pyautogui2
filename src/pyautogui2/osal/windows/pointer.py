@@ -80,7 +80,7 @@ class WindowsPointer(AbstractPointer):
     def _is_legacy(self):
         """Returns whether the system is in legacy mode."""
         if self._legacy_mode is None:
-            self._legacy_mode = is_legacy_windows(self._kernel32)
+            self._legacy_mode = is_legacy_windows()
             if self._legacy_mode:
                 logging.warning("WindowsPointer: legacy mode enabled")
 
