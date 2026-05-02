@@ -48,3 +48,20 @@ class TestKeyboardRealWrite:
 
         result = capkb.read()
         assert result == text
+
+    def test_write_special(self, pyautogui_real_capkb):
+        """Write special characters (left, delete, etc.)."""
+        pyautogui_real, capkb = pyautogui_real_capkb
+
+        pyautogui_real.keyboard.write("123456", interval=0.1)
+        time.sleep(0.3)
+
+        # Remove odd digits from right to left
+        for _ in range(3):
+            pyautogui_real.keyboard.press_key("left", interval=0.1)
+            pyautogui_real.keyboard.press_key("left", interval=0.1)
+            pyautogui_real.keyboard.press_key("delete", interval=0.1)
+            time.sleep(0.3)
+
+        result = capkb.read()
+        assert result == "246"
