@@ -113,6 +113,7 @@ class TestKeyboardDetectLayout:
     """Tests for WindowsKeyboard._detect_layout()."""
 
     def test_detect_layout_hex_string(self, windows_keyboard):
+        windows_keyboard._winreg.QueryValueEx.side_effect = RuntimeError("failed")
         windows_keyboard._user32.GetKeyboardLayout.return_value = 0x040C  # sample French layout
         s = windows_keyboard._detect_layout()
         assert isinstance(s, str)
@@ -265,12 +266,18 @@ class TestKeyboardMappingsAndLayout:
         assert windows_keyboard.key_is_mapped("a")
         assert not windows_keyboard.key_is_mapped("z_not_mapped")
 
-    def test_get_layout_success_and_failure(self, windows_keyboard):
+    def test_get_layout_success(self, windows_keyboard):
+        windows_keyboard._winreg.QueryValueEx.return_value = ("00000040C", None)    # Force AZERTY layout
+        assert windows_keyboard.get_layout() == "AZERTY"
+
+    def test_get_layout_success_fallback(self, windows_keyboard):
+        windows_keyboard._winreg.QueryValueEx.side_effect = RuntimeError("failed")
         windows_keyboard._user32.GetKeyboardLayout.return_value = 0x040C    # Force AZERTY layout
         assert windows_keyboard.get_layout() == "AZERTY"
 
+    def test_get_layout_invalid_raise(self, windows_keyboard):
         # Unsupported layout -> raises PyAutoGUIException
-        windows_keyboard._user32.GetKeyboardLayout.return_value = 0x1234
+        windows_keyboard._winreg.QueryValueEx.return_value = ("000001234", None)
         with pytest.raises(PyAutoGUIException):
             windows_keyboard.get_layout()
 

@@ -23,6 +23,8 @@ class MockUser32:
         self.MessageBoxW = MagicMock(return_value=1)
 
         # Core function mocks used by keyboard.py
+        self.GetForegroundWindow = MagicMock(return_value=0)
+        self.GetWindowThreadProcessId = MagicMock(return_value=0)
         self.GetKeyboardLayout = MagicMock(return_value=0x0409)     # Default US layout
         self.keybd_event = MagicMock(return_value=None)
         self.MapVirtualKeyW = MagicMock(return_value=0)

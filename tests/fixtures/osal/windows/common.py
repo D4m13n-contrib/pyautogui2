@@ -39,20 +39,24 @@ def isolated_windows(isolated_windows_environment):
 
     from tests.mocks.osal.windows.mock_kernel32 import MockKernel32
     from tests.mocks.osal.windows.mock_user32 import MockUser32
+    from tests.mocks.osal.windows.mock_winreg import MockWinreg
 
     original_modules = {
         "kernel32": sys.modules.get("kernel32"),
         "user32": sys.modules.get("user32"),
+        "winreg": sys.modules.get("winreg"),
         "ctypes": sys.modules.get("ctypes"),
         "ctypes.wintypes": sys.modules.get("ctypes.wintypes"),
     }
 
-    sys.modules["ctypes"] = mock_ctypes
-    sys.modules["ctypes.wintypes"] = mock_ctypes.wintypes
-
     # Create mocks
     mock_kernel32 = MockKernel32()
     mock_user32 = MockUser32()
+    mock_winreg = MockWinreg()
+
+    sys.modules["ctypes"] = mock_ctypes
+    sys.modules["ctypes.wintypes"] = mock_ctypes.wintypes
+    sys.modules["winreg"] = mock_winreg
 
     # Install modules for WinDLL()
     sys.modules["kernel32"] = mock_kernel32
@@ -79,6 +83,7 @@ def isolated_windows(isolated_windows_environment):
     isolated = SimpleNamespace(_mocks={
         "mock_kernel32": mock_kernel32,
         "mock_user32": mock_user32,
+        "mock_winreg": mock_winreg,
         "mock_ctypes": mock_ctypes,
         "mock_windll": mock_windll,
     })
@@ -161,6 +166,7 @@ def windows_keyboard(isolated_windows):
     attr_mocks = {
         "_user32": isolated_windows._mocks["mock_user32"],
         "_kernel32": isolated_windows._mocks["mock_kernel32"],
+        "_winreg": isolated_windows._mocks["mock_winreg"],
     }
 
     with clean_windows_osal(WindowsKeyboard, isolated_windows._mocks, attr_mocks) as keyboard:

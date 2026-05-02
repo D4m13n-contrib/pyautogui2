@@ -9,7 +9,7 @@ from typing import Any, Optional
 
 from ...utils.exceptions import PyAutoGUIException
 from ...utils.keyboard_layouts import KEYBOARD_LAYOUTS
-from ...utils.lazy_import import lazy_load_object
+from ...utils.lazy_import import lazy_import, lazy_load_object
 from ..abstract_cls import AbstractKeyboard
 from ._common import INPUT, KEYBDINPUT, get_last_error, is_legacy_windows, send_input
 
@@ -31,6 +31,7 @@ class WindowsKeyboard(AbstractKeyboard):
 
     _user32 = lazy_load_object("user32", lambda: ctypes.WinDLL("user32", use_last_error=True))
     _kernel32 = lazy_load_object("kernel32", lambda: ctypes.WinDLL("kernel32", use_last_error=True))
+    _winreg = lazy_import("winreg")
 
     # --- comprehensive Windows virtual keycodes (VK_* from winuser.h) ---
     KEYCODES_BASE: dict[str, int] = {
@@ -429,8 +430,17 @@ class WindowsKeyboard(AbstractKeyboard):
     def _detect_layout(self) -> str:
         """Detect the active input layout (e.g., '0x0409' for 'US', '0x040C' for 'French', etc.).
         """
-        layout_id = self._user32.GetKeyboardLayout(0)
-        lid_hex = layout_id & 0xFFFF
+        try:
+            with self._winreg.OpenKey(self._winreg.HKEY_LOCAL_MACHINE, r"SYSTEM\Keyboard Layout\Preload") as key:
+                klid, _ = self._winreg.QueryValueEx(key, "1")
+                lid_hex = int(klid, 16)
+        except Exception:
+            logging.debug("Get layout from registry failed, so use User32 fallback")
+            hwnd = self._user32.GetForegroundWindow()
+            thread_id = self._user32.GetWindowThreadProcessId(hwnd, None)
+            layout_id = self._user32.GetKeyboardLayout(thread_id)
+            lid_hex = layout_id & 0xFFFF
+
         return f"0x{lid_hex:04x}"
 
     def _build_input(self, vk_code: int = 0, scan_code: int = 0, flags: int = 0):
