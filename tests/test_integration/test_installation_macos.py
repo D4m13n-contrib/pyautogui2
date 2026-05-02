@@ -207,7 +207,4 @@ class TestMacOSInputSimulation:
     @pytest.mark.real
     def test_keyboard_mappings_exist(self, pyautogui_real):
         """Test that keyboard mappings are defined."""
-        keyboard = pyautogui_real.keyboard
-
-        # Check that keyboard mapping exists
-        assert hasattr(keyboard, 'keyboardMapping') or hasattr(keyboard, '_key_to_keycode')
+        assert pyautogui_real.keyboard.is_valid_key("a") is True
