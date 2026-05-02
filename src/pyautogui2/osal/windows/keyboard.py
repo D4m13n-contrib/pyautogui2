@@ -2,6 +2,7 @@
 
 import ctypes
 import logging
+import time
 
 from collections.abc import Generator
 from contextlib import contextmanager
@@ -14,7 +15,7 @@ from ..abstract_cls import AbstractKeyboard
 from ._common import INPUT, KEYBDINPUT, get_last_error, is_legacy_windows, send_input
 
 
-KeyCode = int  # Windows VK_* key constants are int
+ScanCode = int  # Windows scancode constants are int
 
 
 class WindowsKeyboard(AbstractKeyboard):
@@ -26,200 +27,236 @@ class WindowsKeyboard(AbstractKeyboard):
     Implementation Notes:
         - Prefer SendInput for modern Windows versions (Vista+).
         - Falls back to legacy methods (keybd_event) when needed.
-        - Uses virtual key codes (VK_*) for special keys.
     """
 
     _user32 = lazy_load_object("user32", lambda: ctypes.WinDLL("user32", use_last_error=True))
     _kernel32 = lazy_load_object("kernel32", lambda: ctypes.WinDLL("kernel32", use_last_error=True))
     _winreg = lazy_import("winreg")
 
-    # --- comprehensive Windows virtual keycodes (VK_* from winuser.h) ---
-    KEYCODES_BASE: dict[str, int] = {
-        'BACK':                 0x08, # VK_BACK
-        'TAB':                  0x09, # VK_TAB
-        'CLEAR':                0x0c, # VK_CLEAR
-        'RETURN':               0x0d, # VK_RETURN
-        'SHIFT':                0x10, # VK_SHIFT
-        'CONTROL':              0x11, # VK_CONTROL
-        'MENU':                 0x12, # VK_MENU
-        'PAUSE':                0x13, # VK_PAUSE
-        'CAPITAL':              0x14, # VK_CAPITAL
-        'KANA':                 0x15, # VK_KANA
-        'HANGUEL':              0x15, # VK_HANGUEL
-        'HANGUL':               0x15, # VK_HANGUL
-        'JUNJA':                0x17, # VK_JUNJA
-        'FINAL':                0x18, # VK_FINAL
-        'HANJA':                0x19, # VK_HANJA
-        'KANJI':                0x19, # VK_KANJI
-        'ESCAPE':               0x1b, # VK_ESCAPE
-        'CONVERT':              0x1c, # VK_CONVERT
-        'NONCONVERT':           0x1d, # VK_NONCONVERT
-        'ACCEPT':               0x1e, # VK_ACCEPT
-        'MODECHANGE':           0x1f, # VK_MODECHANGE
-        'SPACE':                0x20, # VK_SPACE
-        'PRIOR':                0x21, # VK_PRIOR
-        'NEXT':                 0x22, # VK_NEXT
-        'END':                  0x23, # VK_END
-        'HOME':                 0x24, # VK_HOME
-        'LEFT':                 0x25, # VK_LEFT
-        'UP':                   0x26, # VK_UP
-        'RIGHT':                0x27, # VK_RIGHT
-        'DOWN':                 0x28, # VK_DOWN
-        'SELECT':               0x29, # VK_SELECT
-        'PRINT':                0x2a, # VK_PRINT
-        'EXECUTE':              0x2b, # VK_EXECUTE
-        'SNAPSHOT':             0x2c, # VK_SNAPSHOT
-        'INSERT':               0x2d, # VK_INSERT
-        'DELETE':               0x2e, # VK_DELETE
-        'HELP':                 0x2f, # VK_HELP
-        '0':                    0x30,
-        '1':                    0x31,
-        '2':                    0x32,
-        '3':                    0x33,
-        '4':                    0x34,
-        '5':                    0x35,
-        '6':                    0x36,
-        '7':                    0x37,
-        '8':                    0x38,
-        '9':                    0x39,
-        'a':                    0x41,
-        'b':                    0x42,
-        'c':                    0x43,
-        'd':                    0x44,
-        'e':                    0x45,
-        'f':                    0x46,
-        'g':                    0x47,
-        'h':                    0x48,
-        'i':                    0x49,
-        'j':                    0x4a,
-        'k':                    0x4b,
-        'l':                    0x4c,
-        'm':                    0x4d,
-        'n':                    0x4e,
-        'o':                    0x4f,
-        'p':                    0x50,
-        'q':                    0x51,
-        'r':                    0x52,
-        's':                    0x53,
-        't':                    0x54,
-        'u':                    0x55,
-        'v':                    0x56,
-        'w':                    0x57,
-        'x':                    0x58,
-        'y':                    0x59,
-        'z':                    0x5a,
-        'LWIN':                 0x5b, # VK_LWIN
-        'RWIN':                 0x5c, # VK_RWIN
-        'APPS':                 0x5d, # VK_APPS
-        'SLEEP':                0x5f, # VK_SLEEP
-        'NUMPAD0':              0x60, # VK_NUMPAD0
-        'NUMPAD1':              0x61, # VK_NUMPAD1
-        'NUMPAD2':              0x62, # VK_NUMPAD2
-        'NUMPAD3':              0x63, # VK_NUMPAD3
-        'NUMPAD4':              0x64, # VK_NUMPAD4
-        'NUMPAD5':              0x65, # VK_NUMPAD5
-        'NUMPAD6':              0x66, # VK_NUMPAD6
-        'NUMPAD7':              0x67, # VK_NUMPAD7
-        'NUMPAD8':              0x68, # VK_NUMPAD8
-        'NUMPAD9':              0x69, # VK_NUMPAD9
-        'MULTIPLY':             0x6a, # VK_MULTIPLY
-        'ADD':                  0x6b, # VK_ADD
-        'SEPARATOR':            0x6c, # VK_SEPARATOR
-        'SUBTRACT':             0x6d, # VK_SUBTRACT
-        'DECIMAL':              0x6e, # VK_DECIMAL
-        'DIVIDE':               0x6f, # VK_DIVIDE
-        'F1':                   0x70, # VK_F1
-        'F2':                   0x71, # VK_F2
-        'F3':                   0x72, # VK_F3
-        'F4':                   0x73, # VK_F4
-        'F5':                   0x74, # VK_F5
-        'F6':                   0x75, # VK_F6
-        'F7':                   0x76, # VK_F7
-        'F8':                   0x77, # VK_F8
-        'F9':                   0x78, # VK_F9
-        'F10':                  0x79, # VK_F10
-        'F11':                  0x7a, # VK_F11
-        'F12':                  0x7b, # VK_F12
-        'F13':                  0x7c, # VK_F13
-        'F14':                  0x7d, # VK_F14
-        'F15':                  0x7e, # VK_F15
-        'F16':                  0x7f, # VK_F16
-        'F17':                  0x80, # VK_F17
-        'F18':                  0x81, # VK_F18
-        'F19':                  0x82, # VK_F19
-        'F20':                  0x83, # VK_F20
-        'F21':                  0x84, # VK_F21
-        'F22':                  0x85, # VK_F22
-        'F23':                  0x86, # VK_F23
-        'F24':                  0x87, # VK_F24
-        'NUMLOCK':              0x90, # VK_NUMLOCK
-        'SCROLL':               0x91, # VK_SCROLL
-        'LSHIFT':               0xa0, # VK_LSHIFT
-        'RSHIFT':               0xa1, # VK_RSHIFT
-        'LCONTROL':             0xa2, # VK_LCONTROL
-        'RCONTROL':             0xa3, # VK_RCONTROL
-        'LMENU':                0xa4, # VK_LMENU
-        'RMENU':                0xa5, # VK_RMENU
-        'BROWSER_BACK':         0xa6, # VK_BROWSER_BACK
-        'BROWSER_FORWARD':      0xa7, # VK_BROWSER_FORWARD
-        'BROWSER_REFRESH':      0xa8, # VK_BROWSER_REFRESH
-        'BROWSER_STOP':         0xa9, # VK_BROWSER_STOP
-        'BROWSER_SEARCH':       0xaa, # VK_BROWSER_SEARCH
-        'BROWSER_FAVORITES':    0xab, # VK_BROWSER_FAVORITES
-        'BROWSER_HOME':         0xac, # VK_BROWSER_HOME
-        'VOLUME_MUTE':          0xad, # VK_VOLUME_MUTE
-        'VOLUME_DOWN':          0xae, # VK_VOLUME_DOWN
-        'VOLUME_UP':            0xaf, # VK_VOLUME_UP
-        'MEDIA_NEXT_TRACK':     0xb0, # VK_MEDIA_NEXT_TRACK
-        'MEDIA_PREV_TRACK':     0xb1, # VK_MEDIA_PREV_TRACK
-        'MEDIA_STOP':           0xb2, # VK_MEDIA_STOP
-        'MEDIA_PLAY_PAUSE':     0xb3, # VK_MEDIA_PLAY_PAUSE
-        'LAUNCH_MAIL':          0xb4, # VK_LAUNCH_MAIL
-        'LAUNCH_MEDIA_SELECT':  0xb5, # VK_LAUNCH_MEDIA_SELECT
-        'LAUNCH_APP1':          0xb6, # VK_LAUNCH_APP1
-        'LAUNCH_APP2':          0xb7, # VK_LAUNCH_APP2
-        'OEM_1_SEMICOLON':      0xba, # VK_OEM_1 (Semicolon)
-        'OEM_PLUS':             0xbb, # VK_OEM_PLUS
-        'OEM_COMMA':            0xbc, # VK_OEM_COMMA
-        'OEM_MINUS':            0xbd, # VK_OEM_MINUS
-        'OEM_PERIOD':           0xbe, # VK_OEM_PERIOD
-        'OEM_2_SLASH':          0xbf, # VK_OEM_2 (Slash)
-        'OEM_3_GRAVE':          0xc0, # VK_OEM_3 (Grave)
-        'OEM_4_LBRACE':         0xdb, # VK_OEM_4 (LeftBrace)
-        'OEM_5_BACKSLASH':      0xdc, # VK_OEM_5 (Backslash)
-        'OEM_6_RBRACE':         0xdd, # VK_OEM_6 (RightBrace)
-        'OEM_7_QUOTE':          0xde, # VK_OEM_7 (Quote)
-        'OEM_8_RCTRL':          0xdf, # VK_OEM_8 (RightCtrl for Canadian CSA keyboard)
-        'PACKET':               0xe7, # VK_PACKET
-        'ATTN':                 0xf6, # VK_ATTN
-        'CRSEL':                0xf7, # VK_CRSEL
-        'EXSEL':                0xf8, # VK_EXSEL
-        'EREOF':                0xf9, # VK_EREOF
-        'PLAY':                 0xfa, # VK_PLAY
-        'ZOOM':                 0xfb, # VK_ZOOM
-        'NONAME':               0xfc, # VK_NONAME
-        'PA1':                  0xfd, # VK_PA1
-        'OEM_CLEAR':            0xfe, # VK_OEM_CLEAR
+    # --- comprehensive Windows keys scancode (from winuser.h) ---
+    SCANCODES_BASE: dict[str, int] = {
+        # Control keys
+        'BACK':                 0x0E,
+        'TAB':                  0x0F,
+        'CLEAR':                0x00,  # No standard scan code
+        'RETURN':               0x1C,
+        'SHIFT':                0x2A,
+        'CONTROL':              0x1D,
+        'MENU':                 0x38,  # Alt
+        'PAUSE':                0x00,  # No standard scan code
+        'CAPITAL':              0x3A,
+        'KANA':                 0x00,
+        'HANGUEL':              0x00,
+        'HANGUL':               0x00,
+        'JUNJA':                0x00,
+        'FINAL':                0x00,
+        'HANJA':                0x00,
+        'KANJI':                0x00,
+        'ESCAPE':               0x01,
+        'CONVERT':              0x00,
+        'NONCONVERT':           0x00,
+        'ACCEPT':               0x00,
+        'MODECHANGE':           0x00,
+        'SPACE':                0x39,
+        'PRIOR':                0x49,  # Page Up (extended)
+        'NEXT':                 0x51,  # Page Down (extended)
+        'END':                  0x4F,  # (extended)
+        'HOME':                 0x47,  # (extended)
+        'LEFT':                 0x4B,  # (extended)
+        'UP':                   0x48,  # (extended)
+        'RIGHT':                0x4D,  # (extended)
+        'DOWN':                 0x50,  # (extended)
+        'SELECT':               0x00,
+        'PRINT':                0x00,
+        'EXECUTE':              0x00,
+        'SNAPSHOT':             0x54,  # Print Screen
+        'INSERT':               0x52,  # (extended)
+        'DELETE':               0x53,  # (extended)
+        'HELP':                 0x00,
+
+        # Number row
+        '0':                    0x0B,
+        '1':                    0x02,
+        '2':                    0x03,
+        '3':                    0x04,
+        '4':                    0x05,
+        '5':                    0x06,
+        '6':                    0x07,
+        '7':                    0x08,
+        '8':                    0x09,
+        '9':                    0x0A,
+
+        # Letters (physical positions, QWERTY layout reference)
+        'a':                    0x1E,
+        'b':                    0x30,
+        'c':                    0x2E,
+        'd':                    0x20,
+        'e':                    0x12,
+        'f':                    0x21,
+        'g':                    0x22,
+        'h':                    0x23,
+        'i':                    0x17,
+        'j':                    0x24,
+        'k':                    0x25,
+        'l':                    0x26,
+        'm':                    0x32,
+        'n':                    0x31,
+        'o':                    0x18,
+        'p':                    0x19,
+        'q':                    0x10,
+        'r':                    0x13,
+        's':                    0x1F,
+        't':                    0x14,
+        'u':                    0x16,
+        'v':                    0x2F,
+        'w':                    0x11,
+        'x':                    0x2D,
+        'y':                    0x15,
+        'z':                    0x2C,
+
+        # System / special
+        'LWIN':                 0x5B,  # (extended)
+        'RWIN':                 0x5C,  # (extended)
+        'APPS':                 0x5D,  # (extended)
+        'SLEEP':                0x5F,  # (extended)
+
+        # Numpad
+        'NUMPAD0':              0x52,
+        'NUMPAD1':              0x4F,
+        'NUMPAD2':              0x50,
+        'NUMPAD3':              0x51,
+        'NUMPAD4':              0x4B,
+        'NUMPAD5':              0x4C,
+        'NUMPAD6':              0x4D,
+        'NUMPAD7':              0x47,
+        'NUMPAD8':              0x48,
+        'NUMPAD9':              0x49,
+        'MULTIPLY':             0x37,
+        'ADD':                  0x4E,
+        'SEPARATOR':            0x00,
+        'SUBTRACT':             0x4A,
+        'DECIMAL':              0x53,
+        'DIVIDE':               0x35,  # (extended)
+
+        # Function keys
+        'F1':                   0x3B,
+        'F2':                   0x3C,
+        'F3':                   0x3D,
+        'F4':                   0x3E,
+        'F5':                   0x3F,
+        'F6':                   0x40,
+        'F7':                   0x41,
+        'F8':                   0x42,
+        'F9':                   0x43,
+        'F10':                  0x44,
+        'F11':                  0x57,
+        'F12':                  0x58,
+        'F13':                  0x64,
+        'F14':                  0x65,
+        'F15':                  0x66,
+        'F16':                  0x67,
+        'F17':                  0x68,
+        'F18':                  0x69,
+        'F19':                  0x6A,
+        'F20':                  0x6B,
+        'F21':                  0x6C,
+        'F22':                  0x6D,
+        'F23':                  0x6E,
+        'F24':                  0x76,
+
+        # Lock keys
+        'NUMLOCK':              0x45,
+        'SCROLL':               0x46,
+
+        # Modifier keys (left/right)
+        'LSHIFT':               0x2A,
+        'RSHIFT':               0x36,
+        'LCONTROL':             0x1D,
+        'RCONTROL':             0x1D,  # (extended)
+        'LMENU':                0x38,
+        'RMENU':                0x38,  # (extended)
+
+        # Media / browser keys (all extended, no classic scan code)
+        'BROWSER_BACK':         0x6A,
+        'BROWSER_FORWARD':      0x69,
+        'BROWSER_REFRESH':      0x67,
+        'BROWSER_STOP':         0x68,
+        'BROWSER_SEARCH':       0x65,
+        'BROWSER_FAVORITES':    0x66,
+        'BROWSER_HOME':         0x32,
+        'VOLUME_MUTE':          0x20,
+        'VOLUME_DOWN':          0x2E,
+        'VOLUME_UP':            0x30,
+        'MEDIA_NEXT_TRACK':     0x19,
+        'MEDIA_PREV_TRACK':     0x10,
+        'MEDIA_STOP':           0x24,
+        'MEDIA_PLAY_PAUSE':     0x22,
+        'LAUNCH_MAIL':          0x6C,
+        'LAUNCH_MEDIA_SELECT':  0x6D,
+        'LAUNCH_APP1':          0x6B,
+        'LAUNCH_APP2':          0x21,
+
+        # OEM keys
+        'OEM_1_SEMICOLON':      0x27,
+        'OEM_PLUS':             0x0D,
+        'OEM_COMMA':            0x33,
+        'OEM_MINUS':            0x0C,
+        'OEM_PERIOD':           0x34,
+        'OEM_2_SLASH':          0x35,
+        'OEM_3_GRAVE':          0x29,
+        'OEM_4_LBRACE':         0x1A,
+        'OEM_5_BACKSLASH':      0x2B,
+        'OEM_6_RBRACE':         0x1B,
+        'OEM_7_QUOTE':          0x28,
+        'OEM_8_RCTRL':          0x00,
+
+        # Misc
+        'PACKET':               0x00,
+        'ATTN':                 0x00,
+        'CRSEL':                0x00,
+        'EXSEL':                0x00,
+        'EREOF':                0x00,
+        'PLAY':                 0x00,
+        'ZOOM':                 0x00,
+        'NONAME':               0x00,
+        'PA1':                  0x00,
+        'OEM_CLEAR':            0x00,
+    }
+
+    # Keys that require the KEYEVENTF_EXTENDEDKEY flag in SendInput
+    EXTENDED_KEYS: set[str] = {
+        'PRIOR', 'NEXT', 'END', 'HOME',
+        'LEFT', 'UP', 'RIGHT', 'DOWN',
+        'INSERT', 'DELETE', 'SNAPSHOT',
+        'DIVIDE', 'NUMLOCK',
+        'LWIN', 'RWIN', 'APPS', 'SLEEP',
+        'RCONTROL', 'RMENU',
+        'BROWSER_BACK', 'BROWSER_FORWARD', 'BROWSER_REFRESH', 'BROWSER_STOP',
+        'BROWSER_SEARCH', 'BROWSER_FAVORITES', 'BROWSER_HOME',
+        'VOLUME_MUTE', 'VOLUME_DOWN', 'VOLUME_UP',
+        'MEDIA_NEXT_TRACK', 'MEDIA_PREV_TRACK', 'MEDIA_STOP', 'MEDIA_PLAY_PAUSE',
+        'LAUNCH_MAIL', 'LAUNCH_MEDIA_SELECT', 'LAUNCH_APP1', 'LAUNCH_APP2',
     }
 
     INPUT_KEYBOARD = 1
 
-    KEYEVENTF_KEYDOWN   = 0x0000   # logical convenience (no bits)
-    KEYEVENTF_KEYUP     = 0x0002
-    KEYEVENTF_UNICODE   = 0x0004
-    KEYEVENTF_SCANCODE  = 0x0008
+    KEYEVENTF_KEYDOWN      = 0x0000   # logical convenience (no bits)
+    KEYEVENTF_KEYUP        = 0x0002
 
-    MAPVK_VK_TO_VSC = 0
+    KEYEVENTF_UNICODE      = 0x0004
+
+    KEYEVENTF_EXTENDEDKEY  = 0x0001
+    KEYEVENTF_SCANCODE     = 0x0008
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self._legacy_mode: Optional[bool] = None
 
-        # Store modifier keycodes for internal use
-        self._mods_keycodes: tuple = ()
+        # Store modifier scancodes for internal use
+        self._mods_scancodes: tuple = ()
 
-        self._char_map: dict[str, tuple[KeyCode, str] | tuple[None, None]] = {}
+        self._char_map: dict[str, tuple[tuple[ScanCode, bool], str] | tuple[tuple[None, bool], None]] = {}
 
 
     # --------------------------
@@ -241,9 +278,9 @@ class WindowsKeyboard(AbstractKeyboard):
         if layout not in all_keymapping:
             raise PyAutoGUIException(f"Error: unsupported layout '{layout}'. Expected one of {list(all_keymapping.keys())}")
 
-        self._mods_keycodes = (
-            ('shift', self._get_keycode('SHIFT')),
-            ('altgr', self._get_keycode('RMENU')),
+        self._mods_scancodes = (
+            ('shift', self._get_scancode('SHIFT')),
+            ('altgr', self._get_scancode('RMENU')),
         )
 
         # ------------------------------------------------------------------
@@ -256,7 +293,7 @@ class WindowsKeyboard(AbstractKeyboard):
         letters_3 = kb_us[37:44]    # zxcvbnm
 
         def _chars_to_keys(chars):
-            return [self._get_keycode(c) for c in chars]
+            return [self._get_scancode(c) for c in chars]
 
         base_keys = (
             _chars_to_keys(["OEM_3_GRAVE"]) + _chars_to_keys(numbers) + _chars_to_keys(["OEM_MINUS", "OEM_PLUS"]) +
@@ -266,18 +303,22 @@ class WindowsKeyboard(AbstractKeyboard):
         )
 
         # ------------------------------------------------------------------
-        # Build char_map dynamically for base/shift/altgr/shift+altgr
+        # Build char_map dynamically for base/shift/altgr
         # ------------------------------------------------------------------
-        undefined_key = (None, None)
+        undefined_key = ((None, False), None)
         self._char_map = dict.fromkeys(key_names, undefined_key)
 
         for modifier, kb_mod in all_keymapping[layout].items():
+            if modifier == "shift_altgr":
+                # SHIFT+ALTGR is not supported on Windows
+                # Do not register these char to fallback to codepoint
+                continue
             if len(kb_mod) == 0:
                 continue
-            for char, key in zip(kb_mod, base_keys, strict=True):
+            for char, (scancode, is_ext) in zip(kb_mod, base_keys, strict=True):
                 # Ensure char is valid and not already mapped
                 if char and self._char_map.get(char, undefined_key) == undefined_key:
-                    self._char_map[char] = (key, modifier)
+                    self._char_map[char] = ((scancode, is_ext), modifier)
 
         # ------------------------------------------------------------------
         # Extra mapping for keys not covered by all_keys (organized by category)
@@ -285,118 +326,118 @@ class WindowsKeyboard(AbstractKeyboard):
         self._char_map.update({
 
             # --- Control keys ---
-            '\t':            (self._get_keycode("TAB"), ""),
-            '\n':            (self._get_keycode("RETURN"), ""),
-            '\r':            (self._get_keycode("RETURN"), ""),
-            '\b':            (self._get_keycode("BACK"), ""),
-            ' ':             (self._get_keycode("SPACE"), ""),
-            'alt':           (self._get_keycode("MENU"), ""),
-            'altgr':         (self._get_keycode("RMENU"), ""),
-            'altleft':       (self._get_keycode("LMENU"), ""),
-            'altright':      (self._get_keycode("RMENU"), ""),
-            'backspace':     (self._get_keycode("BACK"), ""),
-            'capslock':      (self._get_keycode("CAPITAL"), ""),
-            'ctrl':          (self._get_keycode("CONTROL"), ""),
-            'ctrlleft':      (self._get_keycode("LCONTROL"), ""),
-            'ctrlright':     (self._get_keycode("RCONTROL"), ""),
-            'del':           (self._get_keycode("DELETE"), ""),
-            'delete':        (self._get_keycode("DELETE"), ""),
-            'enter':         (self._get_keycode("RETURN"), ""),
-            'esc':           (self._get_keycode("ESCAPE"), ""),
-            'escape':        (self._get_keycode("ESCAPE"), ""),
-            'help':          (self._get_keycode("HELP"), ""),
-            'return':        (self._get_keycode("RETURN"), ""),
-            'shift':         (self._get_keycode("SHIFT"), ""),
-            'shiftleft':     (self._get_keycode("LSHIFT"), ""),
-            'shiftright':    (self._get_keycode("RSHIFT"), ""),
-            'space':         (self._get_keycode("SPACE"), ""),
-            'tab':           (self._get_keycode("TAB"), ""),
-            'win':           (self._get_keycode("LWIN"), ""),
-            'winleft':       (self._get_keycode("LWIN"), ""),
-            'winright':      (self._get_keycode("RWIN"), ""),
-            'option':        (self._get_keycode("MENU"), ""),   # alias for alt
-            'optionleft':    (self._get_keycode("LMENU"), ""),  # alias for altleft
-            'optionright':   (self._get_keycode("RMENU"), ""),  # alias for altright
+            '\t':            (self._get_scancode("TAB"), ""),
+            '\n':            (self._get_scancode("RETURN"), ""),
+            '\r':            (self._get_scancode("RETURN"), ""),
+            '\b':            (self._get_scancode("BACK"), ""),
+            ' ':             (self._get_scancode("SPACE"), ""),
+            'alt':           (self._get_scancode("MENU"), ""),
+            'altgr':         (self._get_scancode("RMENU"), ""),
+            'altleft':       (self._get_scancode("LMENU"), ""),
+            'altright':      (self._get_scancode("RMENU"), ""),
+            'backspace':     (self._get_scancode("BACK"), ""),
+            'capslock':      (self._get_scancode("CAPITAL"), ""),
+            'ctrl':          (self._get_scancode("CONTROL"), ""),
+            'ctrlleft':      (self._get_scancode("LCONTROL"), ""),
+            'ctrlright':     (self._get_scancode("RCONTROL"), ""),
+            'del':           (self._get_scancode("DELETE"), ""),
+            'delete':        (self._get_scancode("DELETE"), ""),
+            'enter':         (self._get_scancode("RETURN"), ""),
+            'esc':           (self._get_scancode("ESCAPE"), ""),
+            'escape':        (self._get_scancode("ESCAPE"), ""),
+            'help':          (self._get_scancode("HELP"), ""),
+            'return':        (self._get_scancode("RETURN"), ""),
+            'shift':         (self._get_scancode("SHIFT"), ""),
+            'shiftleft':     (self._get_scancode("LSHIFT"), ""),
+            'shiftright':    (self._get_scancode("RSHIFT"), ""),
+            'space':         (self._get_scancode("SPACE"), ""),
+            'tab':           (self._get_scancode("TAB"), ""),
+            'win':           (self._get_scancode("LWIN"), ""),
+            'winleft':       (self._get_scancode("LWIN"), ""),
+            'winright':      (self._get_scancode("RWIN"), ""),
+            'option':        (self._get_scancode("MENU"), ""),   # alias for alt
+            'optionleft':    (self._get_scancode("LMENU"), ""),  # alias for altleft
+            'optionright':   (self._get_scancode("RMENU"), ""),  # alias for altright
 
             # --- Navigation keys ---
-            'down':       (self._get_keycode("DOWN"), ""),
-            'end':        (self._get_keycode("END"), ""),
-            'final':      (self._get_keycode("END"), ""),
-            'home':       (self._get_keycode("HOME"), ""),
-            'left':       (self._get_keycode("LEFT"), ""),
-            'pagedown':   (self._get_keycode("NEXT"), ""),
-            'pageup':     (self._get_keycode("PRIOR"), ""),
-            'pgdn':       (self._get_keycode("NEXT"), ""),
-            'pgup':       (self._get_keycode("PRIOR"), ""),
-            'right':      (self._get_keycode("RIGHT"), ""),
-            'up':         (self._get_keycode("UP"), ""),
+            'down':       (self._get_scancode("DOWN"), ""),
+            'end':        (self._get_scancode("END"), ""),
+            'final':      (self._get_scancode("END"), ""),
+            'home':       (self._get_scancode("HOME"), ""),
+            'left':       (self._get_scancode("LEFT"), ""),
+            'pagedown':   (self._get_scancode("NEXT"), ""),
+            'pageup':     (self._get_scancode("PRIOR"), ""),
+            'pgdn':       (self._get_scancode("NEXT"), ""),
+            'pgup':       (self._get_scancode("PRIOR"), ""),
+            'right':      (self._get_scancode("RIGHT"), ""),
+            'up':         (self._get_scancode("UP"), ""),
 
             # --- Function keys ---
-            'f1':    (self._get_keycode("F1"), ""),
-            'f2':    (self._get_keycode("F2"), ""),
-            'f3':    (self._get_keycode("F3"), ""),
-            'f4':    (self._get_keycode("F4"), ""),
-            'f5':    (self._get_keycode("F5"), ""),
-            'f6':    (self._get_keycode("F6"), ""),
-            'f7':    (self._get_keycode("F7"), ""),
-            'f8':    (self._get_keycode("F8"), ""),
-            'f9':    (self._get_keycode("F9"), ""),
-            'f10':   (self._get_keycode("F10"), ""),
-            'f11':   (self._get_keycode("F11"), ""),
-            'f12':   (self._get_keycode("F12"), ""),
-            'f13':   (self._get_keycode("F13"), ""),
-            'f14':   (self._get_keycode("F14"), ""),
-            'f15':   (self._get_keycode("F15"), ""),
-            'f16':   (self._get_keycode("F16"), ""),
-            'f17':   (self._get_keycode("F17"), ""),
-            'f18':   (self._get_keycode("F18"), ""),
-            'f19':   (self._get_keycode("F19"), ""),
-            'f20':   (self._get_keycode("F20"), ""),
-            'f21':   (self._get_keycode("F21"), ""),
-            'f22':   (self._get_keycode("F22"), ""),
-            'f23':   (self._get_keycode("F23"), ""),
-            'f24':   (self._get_keycode("F24"), ""),
+            'f1':    (self._get_scancode("F1"), ""),
+            'f2':    (self._get_scancode("F2"), ""),
+            'f3':    (self._get_scancode("F3"), ""),
+            'f4':    (self._get_scancode("F4"), ""),
+            'f5':    (self._get_scancode("F5"), ""),
+            'f6':    (self._get_scancode("F6"), ""),
+            'f7':    (self._get_scancode("F7"), ""),
+            'f8':    (self._get_scancode("F8"), ""),
+            'f9':    (self._get_scancode("F9"), ""),
+            'f10':   (self._get_scancode("F10"), ""),
+            'f11':   (self._get_scancode("F11"), ""),
+            'f12':   (self._get_scancode("F12"), ""),
+            'f13':   (self._get_scancode("F13"), ""),
+            'f14':   (self._get_scancode("F14"), ""),
+            'f15':   (self._get_scancode("F15"), ""),
+            'f16':   (self._get_scancode("F16"), ""),
+            'f17':   (self._get_scancode("F17"), ""),
+            'f18':   (self._get_scancode("F18"), ""),
+            'f19':   (self._get_scancode("F19"), ""),
+            'f20':   (self._get_scancode("F20"), ""),
+            'f21':   (self._get_scancode("F21"), ""),
+            'f22':   (self._get_scancode("F22"), ""),
+            'f23':   (self._get_scancode("F23"), ""),
+            'f24':   (self._get_scancode("F24"), ""),
 
             # --- Numpad ---
-            'add':         (self._get_keycode("ADD"), ""),
-            'decimal':     (self._get_keycode("DECIMAL"), ""),
-            'divide':      (self._get_keycode("DIVIDE"), ""),
-            'multiply':    (self._get_keycode("MULTIPLY"), ""),
-            'num0':        (self._get_keycode("NUMPAD0"), ""),
-            'num1':        (self._get_keycode("NUMPAD1"), ""),
-            'num2':        (self._get_keycode("NUMPAD2"), ""),
-            'num3':        (self._get_keycode("NUMPAD3"), ""),
-            'num4':        (self._get_keycode("NUMPAD4"), ""),
-            'num5':        (self._get_keycode("NUMPAD5"), ""),
-            'num6':        (self._get_keycode("NUMPAD6"), ""),
-            'num7':        (self._get_keycode("NUMPAD7"), ""),
-            'num8':        (self._get_keycode("NUMPAD8"), ""),
-            'num9':        (self._get_keycode("NUMPAD9"), ""),
-            'numlock':     (self._get_keycode("NUMLOCK"), ""),
-            'separator':   (self._get_keycode("SEPARATOR"), ""),
-            'subtract':    (self._get_keycode("SUBTRACT"), ""),
+            'add':         (self._get_scancode("ADD"), ""),
+            'decimal':     (self._get_scancode("DECIMAL"), ""),
+            'divide':      (self._get_scancode("DIVIDE"), ""),
+            'multiply':    (self._get_scancode("MULTIPLY"), ""),
+            'num0':        (self._get_scancode("NUMPAD0"), ""),
+            'num1':        (self._get_scancode("NUMPAD1"), ""),
+            'num2':        (self._get_scancode("NUMPAD2"), ""),
+            'num3':        (self._get_scancode("NUMPAD3"), ""),
+            'num4':        (self._get_scancode("NUMPAD4"), ""),
+            'num5':        (self._get_scancode("NUMPAD5"), ""),
+            'num6':        (self._get_scancode("NUMPAD6"), ""),
+            'num7':        (self._get_scancode("NUMPAD7"), ""),
+            'num8':        (self._get_scancode("NUMPAD8"), ""),
+            'num9':        (self._get_scancode("NUMPAD9"), ""),
+            'numlock':     (self._get_scancode("NUMLOCK"), ""),
+            'separator':   (self._get_scancode("SEPARATOR"), ""),
+            'subtract':    (self._get_scancode("SUBTRACT"), ""),
 
             # --- Media / system keys ---
-            'apps':         (self._get_keycode("APPS"), ""),
-            'insert':       (self._get_keycode("INSERT"), ""),
-            'select':       (self._get_keycode("SELECT"), ""),
-            'pause':        (self._get_keycode("PAUSE"), ""),
-            'print':        (self._get_keycode("SNAPSHOT"), ""),
-            'printscreen':  (self._get_keycode("SNAPSHOT"), ""),
-            'prntscrn':     (self._get_keycode("SNAPSHOT"), ""),
-            'prtsc':        (self._get_keycode("SNAPSHOT"), ""),
-            'prtscr':       (self._get_keycode("SNAPSHOT"), ""),
-            'scrolllock':   (self._get_keycode("SCROLL"), ""),
-            'execute':      (self._get_keycode("EXECUTE"), ""),
+            'apps':         (self._get_scancode("APPS"), ""),
+            'insert':       (self._get_scancode("INSERT"), ""),
+            'select':       (self._get_scancode("SELECT"), ""),
+            'pause':        (self._get_scancode("PAUSE"), ""),
+            'print':        (self._get_scancode("SNAPSHOT"), ""),
+            'printscreen':  (self._get_scancode("SNAPSHOT"), ""),
+            'prntscrn':     (self._get_scancode("SNAPSHOT"), ""),
+            'prtsc':        (self._get_scancode("SNAPSHOT"), ""),
+            'prtscr':       (self._get_scancode("SNAPSHOT"), ""),
+            'scrolllock':   (self._get_scancode("SCROLL"), ""),
+            'execute':      (self._get_scancode("EXECUTE"), ""),
 
             # --- Browser keys (not implemented) ---
-            'browserback':        (self._get_keycode("BROWSER_BACK"), ""),
-            'browserfavorites':   (self._get_keycode("BROWSER_FAVORITES"), ""),
-            'browserforward':     (self._get_keycode("BROWSER_FORWARD"), ""),
-            'browserhome':        (self._get_keycode("BROWSER_HOME"), ""),
-            'browserrefresh':     (self._get_keycode("BROWSER_REFRESH"), ""),
-            'browsersearch':      (self._get_keycode("BROWSER_SEARCH"), ""),
-            'browserstop':        (self._get_keycode("BROWSER_STOP"), ""),
+            'browserback':        (self._get_scancode("BROWSER_BACK"), ""),
+            'browserfavorites':   (self._get_scancode("BROWSER_FAVORITES"), ""),
+            'browserforward':     (self._get_scancode("BROWSER_FORWARD"), ""),
+            'browserhome':        (self._get_scancode("BROWSER_HOME"), ""),
+            'browserrefresh':     (self._get_scancode("BROWSER_REFRESH"), ""),
+            'browsersearch':      (self._get_scancode("BROWSER_SEARCH"), ""),
+            'browserstop':        (self._get_scancode("BROWSER_STOP"), ""),
 
             # --- Other specials (not implemented or rarely used) ---
             # "hanguel"
@@ -415,17 +456,17 @@ class WindowsKeyboard(AbstractKeyboard):
 
         return self._legacy_mode
 
-    def _get_keycode(self, key: str) -> KeyCode:
-        """Return the Windows virtual keycode for the given key name or single character.
+    def _get_scancode(self, key: str) -> tuple[ScanCode, bool]:
+        """Returns the Windows scan code for the given key name, and
+        a boolean value to specify if KEYEVENTF_EXTENDEDKEY is required for this key.
         """
-        # direct named key first
-        kc = self.KEYCODES_BASE.get(key, None)
-        if kc is not None:
-            return kc
+        sc = self.SCANCODES_BASE.get(key, None)
+        if sc is not None:
+            return (sc, key in self.EXTENDED_KEYS)
 
         # nothing found
         logging.debug(f"No keycode found for '{key}'")
-        return 0
+        return (0, False)
 
     def _detect_layout(self) -> str:
         """Detect the active input layout (e.g., '0x0409' for 'US', '0x040C' for 'French', etc.).
@@ -443,12 +484,11 @@ class WindowsKeyboard(AbstractKeyboard):
 
         return f"0x{lid_hex:04x}"
 
-    def _build_input(self, vk_code: int = 0, scan_code: int = 0, flags: int = 0):
+    def _build_input(self, scancode: int = 0, flags: int = 0):
         """Builds an INPUT structure for keyboard events.
 
         Args:
-            vk_code: Virtual key code (VK_*).
-            scan_code: Hardware scan code.
+            scancode: Hardware scan code.
             flags: KEYEVENTF flags.
 
         Returns:
@@ -459,8 +499,8 @@ class WindowsKeyboard(AbstractKeyboard):
             - Handles extended keys (like right arrow).
         """
         ki = KEYBDINPUT()
-        ki.wVk = vk_code
-        ki.wScan = scan_code
+        ki.wVk = 0
+        ki.wScan = scancode
         ki.dwFlags = flags
         ki.time = 0
         ki.dwExtraInfo = 0
@@ -476,56 +516,56 @@ class WindowsKeyboard(AbstractKeyboard):
     # Core key emission
     # ---------------------------------------------------------------------- #
     def _emit_key(self, key: str, press: bool) -> None:
-        """Emit a key press/release using SendInput (modern) or keybd_event (legacy fallback).
-        We map vk -> scancode for wScan using MapVirtualKey.
-        """
-        def _send_input_legacy(keycode: int, scancode: int, press: bool):
-            # Old Windows fallback
-            try:
-                flags = self.KEYEVENTF_KEYDOWN if press else self.KEYEVENTF_KEYUP
-                self._user32.keybd_event(keycode, scancode, flags, 0)
-            except Exception as e:
-                logging.error(f"[Legacy keybd_event] Failed to emit keycode={keycode}: {e}")
+        """Emit a key press/release via SendInput (or keybd_event legacy fallback)."""
 
-        def _send_input(keycode: int, scancode: int, press: bool):
-            flag = self.KEYEVENTF_KEYDOWN if press else self.KEYEVENTF_KEYUP
-            inp = self._build_input(vk_code=keycode, scan_code=scancode & 0xFFFF, flags=flag)
-            if not send_input(self._user32, inp):
-                err = get_last_error(self._kernel32)
-                logging.warning(f"emit_key->SendInput(keycode={keycode}, press={press}) failed: GetLastError={err}")
+        def _build_flags(press: bool, is_extended: bool) -> int:
+            flags = self.KEYEVENTF_KEYDOWN if press else self.KEYEVENTF_KEYUP
+            flags |= self.KEYEVENTF_SCANCODE
+            if is_extended:
+                flags |= self.KEYEVENTF_EXTENDEDKEY
+            return flags
+
+        def _send(scancode: int, is_extended: bool, press: bool) -> None:
+            flags = _build_flags(press, is_extended)
+            if self._is_legacy():
+                try:
+                    self._user32.keybd_event(0, scancode, flags, 0)
+                except Exception as e:
+                    logging.error(f"[keybd_event] scancode={scancode}: {e}")
+            else:
+                inp = self._build_input(scancode & 0xFFFF, flags)
+                if not send_input(self._user32, inp):
+                    err = get_last_error(self._kernel32)
+                    logging.warning(f"[SendInput] scancode={scancode}, press={press}: GetLastError={err}")
 
         mapping = self._char_map.get(key)
         if mapping is None:
-            raise PyAutoGUIException(f"Error: key '{key}' not implemented")
+            raise PyAutoGUIException(f"Key '{key}' not implemented")
 
-        keycode, mods = mapping
-        if keycode is None:
-            raise PyAutoGUIException(f"Error: no keycode mapped for key '{key}'")
+        (scancode, is_extended), mods = mapping
+        if scancode is None:
+            raise PyAutoGUIException(f"No scancode mapped for key '{key}'")
 
-        scancode = self._user32.MapVirtualKeyW(keycode, self.MAPVK_VK_TO_VSC)
-
-        logging.debug(f"emit key: {key}, code={keycode}, scancode={scancode}, mods={mods}, press={press}")
-
-        send_input_func = _send_input_legacy if self._is_legacy() else _send_input
+        logging.debug(f"emit_key: key={key!r} scancode={scancode:#x} mods={mods} press={press} extended={is_extended}")
 
         # Press modifiers if pressing the key
         if mods and press:
-            for mod_name, mod_keycode in self._mods_keycodes:
+            for mod_name, (mod_sc, mod_ext) in self._mods_scancodes:
                 if mod_name in mods:
-                    send_input_func(mod_keycode, scancode, True)
+                    _send(mod_sc, mod_ext, True)
 
-        send_input_func(keycode, scancode, press)
+        _send(scancode, is_extended, press)
 
         # Then release modifiers in reverse-ish order
         if mods and not press:
-            for mod_name, mod_keycode in reversed(self._mods_keycodes):
+            for mod_name, (mod_sc, mod_ext) in reversed(self._mods_scancodes):
                 if mod_name in mods:
-                    send_input_func(mod_keycode, scancode, False)
+                    _send(mod_sc, mod_ext, False)
 
     def _emit_unicode_char(self, char: str) -> None:
         """Send a Unicode character directly (if supported),
         or fallback to '?' for legacy systems.
-        Use VK_PACKET (0xE7) and KEYEVENTF_UNICODE. This is the recommended approach.
+        Handling surrogate pairs for codepoints > 0xFFFF.
         """
         if self._is_legacy():
             logging.warning(f"Unicode '{char}' not supported in legacy mode -> using '?' placeholder")
@@ -533,22 +573,34 @@ class WindowsKeyboard(AbstractKeyboard):
             self._emit_key("?", press=False)
             return
 
-        def _send_input(codepoint: int, press: bool):
-            if codepoint > 0xFFFF:
-                logging.warning(f"Codepoint (0x{codepoint:04X}) > 0xFFFF may not render correctly on Windows SendInput()")
+        def _send_input(scancode: int, press: bool):
             flags = self.KEYEVENTF_KEYDOWN if press else self.KEYEVENTF_KEYUP
             flags |= self.KEYEVENTF_UNICODE
-            # Use VK_PACKET with wScan=unicode codepoint
-            inp = self._build_input(vk_code=self._get_keycode('PACKET'), scan_code=codepoint & 0xFFFF, flags=flags)
+            inp = self._build_input(scancode & 0xFFFF, flags)
             if not send_input(self._user32, inp):
                 err = get_last_error(self._kernel32)
-                logging.warning(f"emit_unicode_char->SendInput(codepoint={codepoint}, press={press}) failed: GetLastError={err}")
+                logging.warning(f"emit_unicode_char->SendInput(scancode={scancode}, press={press}) failed: GetLastError={err}")
 
-        cp = ord(char)
+        codepoint = ord(char)
 
-        # Press / Release
-        _send_input(cp, press=True)
-        _send_input(cp, press=False)
+        if codepoint <= 0xFFFF:
+            # BMP character: single Unicode event
+            scancodes = [codepoint]
+        else:
+            # Supplementary plane: encode as UTF-16 surrogate pair
+            encoded = char.encode('utf-16-le')  # 4 bytes for surrogate pair
+            high = int.from_bytes(encoded[0:2], 'little')  # high surrogate
+            low  = int.from_bytes(encoded[2:4], 'little')  # low surrogate
+            scancodes = [high, low]
+
+        for sc in scancodes:
+            _send_input(sc, press=True)
+            _send_input(sc, press=False)
+
+        if len(scancodes) > 1:
+            # Surrogate pairs need a small delay to let Windows process
+            # the pair completely before the next character
+            time.sleep(0.01)
 
     class _CodepointCtx(AbstractKeyboard.AbstractCodepointCtx):
         def type_codepoint_value(self, hexstr: str) -> None:
@@ -567,7 +619,7 @@ class WindowsKeyboard(AbstractKeyboard):
     # Public key operations
     # ---------------------------------------------------------------------- #
     def key_is_mapped(self, key: str) -> bool:
-        return self._char_map.get(key, (None, None)) != (None, None)
+        return self._char_map.get(key, ((None, None), None)) != ((None, None), None)
 
     def get_layout(self) -> str:
         layout = self._detect_layout()

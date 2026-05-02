@@ -96,12 +96,9 @@ class TestWindowsInputSimulation:
         assert send_input is not None
 
     @pytest.mark.real
-    def test_vk_codes_available(self, pyautogui_real):
-        """Test that virtual key codes are defined."""
-        keyboard = pyautogui_real.keyboard
-
-        # Check some common VK codes exist
-        assert hasattr(keyboard, '_key_to_vk') or hasattr(keyboard, 'keyboardMapping')
+    def test_key_codes_available(self, pyautogui_real):
+        """Test that key codes are defined."""
+        assert pyautogui_real.keyboard.is_valid_key("a") is True
 
     @pytest.mark.real
     def test_mouse_click(self, pyautogui_real):
