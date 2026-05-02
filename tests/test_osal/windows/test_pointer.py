@@ -1,4 +1,6 @@
 """Unit tests for pyautogui2.osal.windows.pointer.WindowsPointer."""
+import math
+
 from unittest.mock import patch
 
 import pytest
@@ -11,8 +13,8 @@ def _helper_convert_pos(user32, x, y):
     """Converts position to 0-65535 coordinates range."""
     screen_w = user32.GetSystemMetrics(0)   # SM_CXSCREEN
     screen_h = user32.GetSystemMetrics(1)   # SM_CYSCREEN
-    abs_x = int(x * 65535 / max(1, screen_w - 1))
-    abs_y = int(y * 65535 / max(1, screen_h - 1))
+    abs_x = min(65535, math.ceil(x * 65535 / (screen_w - 1)))
+    abs_y = min(65535, math.ceil(y * 65535 / (screen_h - 1)))
     return (abs_x, abs_y)
 
 

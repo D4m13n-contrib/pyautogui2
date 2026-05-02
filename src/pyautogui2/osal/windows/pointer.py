@@ -1,8 +1,8 @@
-"""WindowsPointer.
-"""
+"""WindowsPointer."""
 
 import ctypes
 import logging
+import math
 
 from ctypes import wintypes
 from typing import Any, Optional
@@ -151,8 +151,8 @@ class WindowsPointer(AbstractPointer):
         if screen_w <= 1 or screen_h <= 1:
             raise RuntimeError("Invalid screen size from GetSystemMetrics")
 
-        abs_x = int(x * 65535 / max(1, screen_w - 1))
-        abs_y = int(y * 65535 / max(1, screen_h - 1))
+        abs_x = min(65535, math.ceil(x * 65535 / (screen_w - 1)))
+        abs_y = min(65535, math.ceil(y * 65535 / (screen_h - 1)))
 
         ev = self.MOUSEEVENTF_MOVE | self.MOUSEEVENTF_ABSOLUTE
 
