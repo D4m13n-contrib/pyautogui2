@@ -1,13 +1,12 @@
 """WindowsScreen."""
+
 import ctypes
-import functools
 
 from ctypes import wintypes
 
-from ...utils.exceptions import ImageNotFoundException
 from ...utils.lazy_import import lazy_import, lazy_load_object
 from ...utils.types import Size
-from ..abstract_cls import AbstractScreen
+from ..abstract_cls import AbstractScreen, _wrap_pyscreeze
 from ._common import MONITORINFO, RECT, ensure_dpi_aware, get_last_error
 
 
@@ -31,40 +30,9 @@ class WindowsScreen(AbstractScreen):
         super().setup_postinit(*args, **kwargs)
 
         pyscreeze = self._pyscreeze
-        setattr(pyscreeze, 'USE_IMAGE_NOT_FOUND_EXCEPTION', True)   # noqa: B010
+        pyscreeze.USE_IMAGE_NOT_FOUND_EXCEPTION = True  # type: ignore[attr-defined]
 
         ensure_dpi_aware(self._kernel32)
-
-    @staticmethod
-    def _wrap_pyscreeze(wrapped_function):
-        """A decorator that wraps PyScreeze's methods.
-
-        Wraps:
-          - PyAutoGUI argument name (snake_case) into PyScreeze argument name (camelCase).
-          - PyScreeze's ImageNotFoundException into PyAutoGUI's ImageNotFoundException.
-        """
-        arg_names_case = {
-            "needle_image": "needleImage",
-            "haystack_image": "haystackImage",
-            "min_search_time": "minSearchTime",
-            "image_path": "imageFilename",
-            "expected_color": "expectedRGBColor",
-        }
-
-        @functools.wraps(wrapped_function)
-        def wrapper(self, *args, **kwargs):
-            for arg_name, pyscreeze_arg_name in arg_names_case.items():
-                if arg_name in kwargs:
-                    kwargs[pyscreeze_arg_name] = kwargs[arg_name]
-                    del kwargs[arg_name]
-
-            pyscreeze = self._pyscreeze
-            try:
-                return wrapped_function(self, *args, **kwargs)
-            except pyscreeze.ImageNotFoundException as e:
-                raise ImageNotFoundException() from e
-
-        return wrapper
 
     @_wrap_pyscreeze
     def locate(self, *args, **kwargs):
@@ -155,7 +123,8 @@ class WindowsScreen(AbstractScreen):
         is located, by default).
         """
         monitor = self._user32.MonitorFromWindow(
-            self._user32.GetDesktopWindow(), 1  # MONITOR_DEFAULTTOPRIMARY
+            self._user32.GetDesktopWindow(),
+            1,  # MONITOR_DEFAULTTOPRIMARY
         )
         info = MONITORINFO(cbSize=ctypes.sizeof(MONITORINFO))
         if not self._user32.GetMonitorInfoW(monitor, ctypes.byref(info)):

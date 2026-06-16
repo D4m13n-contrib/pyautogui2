@@ -35,11 +35,16 @@ def get_linux_info() -> dict[str, str]:
     # - Remove prefix "x-" (e.g. "X-Cinnamon" => "cinnamon")
     # - Split on ":" and get the last part (e.g. "ubuntu:GNOME" => "gnome")
     desktop_env = (
-        os.environ.get("XDG_SESSION_DESKTOP")
-        or os.environ.get("XDG_CURRENT_DESKTOP")
-        or os.environ.get("DESKTOP_SESSION")
-        or "unknown"
-    ).lower().removeprefix("x-").split(":")[-1]
+        (
+            os.environ.get("XDG_SESSION_DESKTOP")
+            or os.environ.get("XDG_CURRENT_DESKTOP")
+            or os.environ.get("DESKTOP_SESSION")
+            or "unknown"
+        )
+        .lower()
+        .removeprefix("x-")
+        .split(":")[-1]
+    )
     # Converts specific Desktop Environment to standrad name (e.g. "xubuntu" => "xfce")
     de_fallback = {
         "ubuntu": "gnome",
@@ -57,23 +62,19 @@ def get_linux_info() -> dict[str, str]:
 
 def get_win32_info() -> dict[str, str]:
     """Windows-specific."""
-    if not sys.platform.startswith("win32"):
-        return {}
-
-    return {    # type: ignore[unreachable]
-        "win32_version": platform.win32_ver()[0],
-        "win32_edition": platform.win32_edition(),
-    }
+    info: dict[str, str] = {}
+    if sys.platform.startswith("win32"):
+        info["win32_version"] = platform.win32_ver()[0]
+        info["win32_edition"] = platform.win32_edition()
+    return info
 
 
 def get_darwin_info() -> dict[str, str]:
     """MacOS-specific."""
-    if not sys.platform.startswith("darwin"):
-        return {}
-
-    return {    # type: ignore[unreachable]
-        "darwin_version": platform.mac_ver()[0],
-    }
+    info: dict[str, str] = {}
+    if sys.platform.startswith("darwin"):
+        info["darwin_version"] = platform.mac_ver()[0]
+    return info
 
 
 def get_platform_info() -> dict[str, str]:

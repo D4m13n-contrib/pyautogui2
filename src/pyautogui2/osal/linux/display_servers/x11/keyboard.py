@@ -84,7 +84,7 @@ class X11KeyboardPart(AbstractKeyboard):
         """
         super().setup_postinit(*args, **kwargs)
 
-        self._display = self._xlib.display.Display(os.environ['DISPLAY'])
+        self._display = self._xlib.display.Display(os.environ["DISPLAY"])
         if self._display is None:
            raise PyAutoGUIException("Error: Cannot obtain Display")
 
@@ -102,12 +102,12 @@ class X11KeyboardPart(AbstractKeyboard):
         if self._layout not in all_keymapping:
             raise PyAutoGUIException(f"Error: unsupported layout '{self._layout}'. Expected one of {list(all_keymapping.keys())}")
 
-        shift_l = self._get_keycode('Shift_L')
+        shift_l = self._get_keycode("Shift_L")
         if shift_l is None:
             raise PyAutoGUIException("Error: no keycode found for Shift_L")
 
         self._mods_keycodes = (
-            ('shift', shift_l),
+            ("shift", shift_l),
         )
 
         # ------------------------------------------------------------------
@@ -143,109 +143,109 @@ class X11KeyboardPart(AbstractKeyboard):
         self._char_map.update({
 
             # --- Control keys ---
-            '\t':            (self._get_keycode("Tab"), ""),
-            '\n':            (self._get_keycode("Return"), ""),
-            '\r':            (self._get_keycode("Return"), ""),
-            '\b':            (self._get_keycode("BackSpace"), ""),
-            ' ':             (self._get_keycode("space"), ""),
-            'alt':           (self._get_keycode("Alt_L"), ""),
-            'altgr':         (self._get_keycode("ISO_Level3_Shift"), ""),
-            'altleft':       (self._get_keycode("Alt_L"), ""),
-            'altright':      (self._get_keycode("ISO_Level3_Shift"), ""),
-            'backspace':     (self._get_keycode("BackSpace"), ""),
-            'capslock':      (self._get_keycode("Caps_Lock"), ""),
-            'ctrl':          (self._get_keycode("Control_L"), ""),
-            'ctrlleft':      (self._get_keycode("Control_L"), ""),
-            'ctrlright':     (self._get_keycode("Control_R"), ""),
-            'del':           (self._get_keycode("Delete"), ""),
-            'delete':        (self._get_keycode("Delete"), ""),
-            'enter':         (self._get_keycode("Return"), ""),
-            'esc':           (self._get_keycode("Escape"), ""),
-            'escape':        (self._get_keycode("Escape"), ""),
-            'help':          (self._get_keycode("Help"), ""),
-            'return':        (self._get_keycode("Return"), ""),
-            'shift':         (self._get_keycode("Shift_L"), ""),
-            'shiftleft':     (self._get_keycode("Shift_L"), ""),
-            'shiftright':    (self._get_keycode("Shift_R"), ""),
-            'space':         (self._get_keycode("space"), ""),
-            'tab':           (self._get_keycode("Tab"), ""),
-            'win':           (self._get_keycode("Super_L"), ""),
-            'winleft':       (self._get_keycode("Super_L"), ""),
-            'winright':      (self._get_keycode("Super_R"), ""),
-            'option':        (self._get_keycode("Alt_L"), ""),              # alias for alt
-            'optionleft':    (self._get_keycode("Alt_L"), ""),              # alias for altleft
-            'optionright':   (self._get_keycode("ISO_Level3_Shift"), ""),   # alias for altright
+            "\t":            (self._get_keycode("Tab"), ""),
+            "\n":            (self._get_keycode("Return"), ""),
+            "\r":            (self._get_keycode("Return"), ""),
+            "\b":            (self._get_keycode("BackSpace"), ""),
+            " ":             (self._get_keycode("space"), ""),
+            "alt":           (self._get_keycode("Alt_L"), ""),
+            "altgr":         (self._get_keycode("ISO_Level3_Shift"), ""),
+            "altleft":       (self._get_keycode("Alt_L"), ""),
+            "altright":      (self._get_keycode("ISO_Level3_Shift"), ""),
+            "backspace":     (self._get_keycode("BackSpace"), ""),
+            "capslock":      (self._get_keycode("Caps_Lock"), ""),
+            "ctrl":          (self._get_keycode("Control_L"), ""),
+            "ctrlleft":      (self._get_keycode("Control_L"), ""),
+            "ctrlright":     (self._get_keycode("Control_R"), ""),
+            "del":           (self._get_keycode("Delete"), ""),
+            "delete":        (self._get_keycode("Delete"), ""),
+            "enter":         (self._get_keycode("Return"), ""),
+            "esc":           (self._get_keycode("Escape"), ""),
+            "escape":        (self._get_keycode("Escape"), ""),
+            "help":          (self._get_keycode("Help"), ""),
+            "return":        (self._get_keycode("Return"), ""),
+            "shift":         (self._get_keycode("Shift_L"), ""),
+            "shiftleft":     (self._get_keycode("Shift_L"), ""),
+            "shiftright":    (self._get_keycode("Shift_R"), ""),
+            "space":         (self._get_keycode("space"), ""),
+            "tab":           (self._get_keycode("Tab"), ""),
+            "win":           (self._get_keycode("Super_L"), ""),
+            "winleft":       (self._get_keycode("Super_L"), ""),
+            "winright":      (self._get_keycode("Super_R"), ""),
+            "option":        (self._get_keycode("Alt_L"), ""),              # alias for alt
+            "optionleft":    (self._get_keycode("Alt_L"), ""),              # alias for altleft
+            "optionright":   (self._get_keycode("ISO_Level3_Shift"), ""),   # alias for altright
 
             # --- Navigation keys ---
-            'down':       (self._get_keycode("Down"), ""),
-            'end':        (self._get_keycode("End"), ""),
-            'final':      (self._get_keycode("End"), ""),
-            'home':       (self._get_keycode("Home"), ""),
-            'insert':     (self._get_keycode("Insert"), ""),
-            'left':       (self._get_keycode("Left"), ""),
-            'pagedown':   (self._get_keycode("Page_Down"), ""),
-            'pageup':     (self._get_keycode("Page_Up"), ""),
-            'pgdn':       (self._get_keycode("Page_Down"), ""),
-            'pgup':       (self._get_keycode("Page_Up"), ""),
-            'right':      (self._get_keycode("Right"), ""),
-            'select':     (self._get_keycode("Select"), ""),
-            'up':         (self._get_keycode("Up"), ""),
+            "down":       (self._get_keycode("Down"), ""),
+            "end":        (self._get_keycode("End"), ""),
+            "final":      (self._get_keycode("End"), ""),
+            "home":       (self._get_keycode("Home"), ""),
+            "insert":     (self._get_keycode("Insert"), ""),
+            "left":       (self._get_keycode("Left"), ""),
+            "pagedown":   (self._get_keycode("Page_Down"), ""),
+            "pageup":     (self._get_keycode("Page_Up"), ""),
+            "pgdn":       (self._get_keycode("Page_Down"), ""),
+            "pgup":       (self._get_keycode("Page_Up"), ""),
+            "right":      (self._get_keycode("Right"), ""),
+            "select":     (self._get_keycode("Select"), ""),
+            "up":         (self._get_keycode("Up"), ""),
 
             # --- Function keys ---
-            'f1':    (self._get_keycode("F1"), ""),
-            'f2':    (self._get_keycode("F2"), ""),
-            'f3':    (self._get_keycode("F3"), ""),
-            'f4':    (self._get_keycode("F4"), ""),
-            'f5':    (self._get_keycode("F5"), ""),
-            'f6':    (self._get_keycode("F6"), ""),
-            'f7':    (self._get_keycode("F7"), ""),
-            'f8':    (self._get_keycode("F8"), ""),
-            'f9':    (self._get_keycode("F9"), ""),
-            'f10':   (self._get_keycode("F10"), ""),
-            'f11':   (self._get_keycode("F11"), ""),
-            'f12':   (self._get_keycode("F12"), ""),
-            'f13':   (self._get_keycode("F13"), ""),
-            'f14':   (self._get_keycode("F14"), ""),
-            'f15':   (self._get_keycode("F15"), ""),
-            'f16':   (self._get_keycode("F16"), ""),
-            'f17':   (self._get_keycode("F17"), ""),
-            'f18':   (self._get_keycode("F18"), ""),
-            'f19':   (self._get_keycode("F19"), ""),
-            'f20':   (self._get_keycode("F20"), ""),
-            'f21':   (self._get_keycode("F21"), ""),
-            'f22':   (self._get_keycode("F22"), ""),
-            'f23':   (self._get_keycode("F23"), ""),
-            'f24':   (self._get_keycode("F24"), ""),
+            "f1":    (self._get_keycode("F1"), ""),
+            "f2":    (self._get_keycode("F2"), ""),
+            "f3":    (self._get_keycode("F3"), ""),
+            "f4":    (self._get_keycode("F4"), ""),
+            "f5":    (self._get_keycode("F5"), ""),
+            "f6":    (self._get_keycode("F6"), ""),
+            "f7":    (self._get_keycode("F7"), ""),
+            "f8":    (self._get_keycode("F8"), ""),
+            "f9":    (self._get_keycode("F9"), ""),
+            "f10":   (self._get_keycode("F10"), ""),
+            "f11":   (self._get_keycode("F11"), ""),
+            "f12":   (self._get_keycode("F12"), ""),
+            "f13":   (self._get_keycode("F13"), ""),
+            "f14":   (self._get_keycode("F14"), ""),
+            "f15":   (self._get_keycode("F15"), ""),
+            "f16":   (self._get_keycode("F16"), ""),
+            "f17":   (self._get_keycode("F17"), ""),
+            "f18":   (self._get_keycode("F18"), ""),
+            "f19":   (self._get_keycode("F19"), ""),
+            "f20":   (self._get_keycode("F20"), ""),
+            "f21":   (self._get_keycode("F21"), ""),
+            "f22":   (self._get_keycode("F22"), ""),
+            "f23":   (self._get_keycode("F23"), ""),
+            "f24":   (self._get_keycode("F24"), ""),
 
             # --- Numpad ---
-            'add':         (self._get_keycode("KP_Add"), ""),
-            'decimal':     (self._get_keycode("KP_Decimal"), ""),
-            'divide':      (self._get_keycode("KP_Divide"), ""),
-            'multiply':    (self._get_keycode("KP_Multiply"), ""),
-            'num0':        (self._get_keycode("KP_0"), ""),
-            'num1':        (self._get_keycode("KP_1"), ""),
-            'num2':        (self._get_keycode("KP_2"), ""),
-            'num3':        (self._get_keycode("KP_3"), ""),
-            'num4':        (self._get_keycode("KP_4"), ""),
-            'num5':        (self._get_keycode("KP_5"), ""),
-            'num6':        (self._get_keycode("KP_6"), ""),
-            'num7':        (self._get_keycode("KP_7"), ""),
-            'num8':        (self._get_keycode("KP_8"), ""),
-            'num9':        (self._get_keycode("KP_9"), ""),
-            'numlock':     (self._get_keycode("Num_Lock"), ""),
-            'separator':   (self._get_keycode("KP_Separator"), ""),
-            'subtract':    (self._get_keycode("KP_Subtract"), ""),
+            "add":         (self._get_keycode("KP_Add"), ""),
+            "decimal":     (self._get_keycode("KP_Decimal"), ""),
+            "divide":      (self._get_keycode("KP_Divide"), ""),
+            "multiply":    (self._get_keycode("KP_Multiply"), ""),
+            "num0":        (self._get_keycode("KP_0"), ""),
+            "num1":        (self._get_keycode("KP_1"), ""),
+            "num2":        (self._get_keycode("KP_2"), ""),
+            "num3":        (self._get_keycode("KP_3"), ""),
+            "num4":        (self._get_keycode("KP_4"), ""),
+            "num5":        (self._get_keycode("KP_5"), ""),
+            "num6":        (self._get_keycode("KP_6"), ""),
+            "num7":        (self._get_keycode("KP_7"), ""),
+            "num8":        (self._get_keycode("KP_8"), ""),
+            "num9":        (self._get_keycode("KP_9"), ""),
+            "numlock":     (self._get_keycode("Num_Lock"), ""),
+            "separator":   (self._get_keycode("KP_Separator"), ""),
+            "subtract":    (self._get_keycode("KP_Subtract"), ""),
 
             # --- Media / system keys ---
-            'pause':         (self._get_keycode("Pause"), ""),
-            'print':         (self._get_keycode("Print"), ""),
-            'printscreen':   (self._get_keycode("Print"), ""),
-            'prntscrn':      (self._get_keycode("Print"), ""),
-            'prtsc':         (self._get_keycode("Print"), ""),
-            'prtscr':        (self._get_keycode("Print"), ""),
-            'scrolllock':    (self._get_keycode("Scroll_Lock"), ""),
-            'execute':       (self._get_keycode("Execute"), ""),
-            'apps':          (self._get_keycode("Menu"), ""),
+            "pause":         (self._get_keycode("Pause"), ""),
+            "print":         (self._get_keycode("Print"), ""),
+            "printscreen":   (self._get_keycode("Print"), ""),
+            "prntscrn":      (self._get_keycode("Print"), ""),
+            "prtsc":         (self._get_keycode("Print"), ""),
+            "prtscr":        (self._get_keycode("Print"), ""),
+            "scrolllock":    (self._get_keycode("Scroll_Lock"), ""),
+            "execute":       (self._get_keycode("Execute"), ""),
+            "apps":          (self._get_keycode("Menu"), ""),
 
             # --- Browser keys (not implemented) ---
             # "browserback"
@@ -435,10 +435,10 @@ class X11KeyboardPart(AbstractKeyboard):
         """
         layout = self._detect_layout()
 
-        if layout not in KEYBOARD_LAYOUTS['linux']:
+        if layout not in KEYBOARD_LAYOUTS["linux"]:
             raise PyAutoGUIException(f"Layout '{layout}' is unsupported by PyAutoGUI")
 
-        return KEYBOARD_LAYOUTS['linux'][layout]['layout']
+        return KEYBOARD_LAYOUTS["linux"][layout]["layout"]
 
     def key_is_mapped(self, key: str) -> bool:
         """Implementation Notes:

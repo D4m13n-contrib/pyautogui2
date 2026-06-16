@@ -11,6 +11,7 @@ These classes implement the decorator propagation system that allows abstract
 methods to automatically inherit decorators (like @pause_decorator or @log_screenshot)
 unless explicitly removed by subclasses.
 """
+
 import importlib
 import inspect
 
@@ -166,12 +167,12 @@ def _make_wrapper(method: Callable, ref_func: Callable) -> Callable:
         return method(*args, **kwargs)
 
     # Override the signature with the one from the abstract function
-    setattr(wrapper, '__signature__', sig)  # noqa: B010
+    wrapper.__signature__ = sig  # type: ignore[attr-defined]
 
     return wrapper
 
 
-class _AbstractBase(ABC):   # noqa: B024
+class _AbstractBase(ABC):  # noqa: B024
     """Root base class for the PyAutoGUI abstract class hierarchy.
 
     This class implements the decorator propagation mechanism that allows abstract

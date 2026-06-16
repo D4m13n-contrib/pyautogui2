@@ -317,7 +317,7 @@ class _LazyPyAutoGUI(ModuleType):
             the screen with locateOnScreen() and click the center of.
         y (int, float, None, optional): The y position on the screen where the
             mouse down happens. None by default.
-        button (str, int, optional): The mouse button pressed down. TODO
+        button (str, int, optional): The mouse button to press down. One of the constants LEFT, MIDDLE, RIGHT, PRIMARY, or SECONDARY.
         duration (float, optional): The amount of time it takes to move the mouse
             cursor to the xy coordinates. If 0, then the mouse cursor is moved
             instantaneously. 0.0 by default.
@@ -358,7 +358,7 @@ class _LazyPyAutoGUI(ModuleType):
             the screen with locateOnScreen() and click the center of.
         y (int, float, None, optional): The y position on the screen where the
             mouse up happens. None by default.
-        button (str, int, optional): The mouse button released. TODO
+        button (str, int, optional): The mouse button to release. One of the constants LEFT, MIDDLE, RIGHT, PRIMARY, or SECONDARY.
         duration (float, optional): The amount of time it takes to move the mouse
             cursor to the xy coordinates. If 0, then the mouse cursor is moved
             instantaneously. 0.0 by default.
@@ -574,7 +574,7 @@ class _LazyPyAutoGUI(ModuleType):
         interval (float, optional): The number of seconds in between each click,
             if the number of clicks is greater than 1. 0.0 by default, for no
             pause in between clicks.
-        button (str, int, optional): The mouse button released. TODO
+        button (str, int, optional): The mouse button to release. One of the constants LEFT, MIDDLE, RIGHT, PRIMARY, or SECONDARY.
         duration (float, optional): The amount of time it takes to move the mouse
             cursor to the xy coordinates. If 0, then the mouse cursor is moved
             instantaneously. 0.0 by default.
@@ -622,7 +622,7 @@ class _LazyPyAutoGUI(ModuleType):
         interval (float, optional): The number of seconds in between each click,
             if the number of clicks is greater than 1. 0.0 by default, for no
             pause in between clicks.
-        button (str, int, optional): The mouse button released. TODO
+        button (str, int, optional): The mouse button to release. One of the constants LEFT, MIDDLE, RIGHT, PRIMARY, or SECONDARY.
         duration (float, optional): The amount of time it takes to move the mouse
             cursor to the xy coordinates. If 0, then the mouse cursor is moved
             instantaneously. 0.0 by default.
@@ -836,7 +836,7 @@ class _LazyPyAutoGUI(ModuleType):
             instantaneously. 0.0 by default.
         tween (func, optional): The tweening function used if the duration is not
             0. A linear tween is used by default.
-        button (str, int, optional): The mouse button released. TODO
+        button (str, int, optional): The mouse button to release. One of the constants LEFT, MIDDLE, RIGHT, PRIMARY, or SECONDARY.
         mouseDownUp (True, False): When true, the mouseUp/Down actions are not performed.
             Which allows dragging over multiple (small) actions. 'True' by default.
         logScreenshot: See utils/decorators/log_screenshot.py.
@@ -878,7 +878,7 @@ class _LazyPyAutoGUI(ModuleType):
             instantaneously. 0.0 by default.
         tween (func, optional): The tweening function used if the duration is not
             0. A linear tween is used by default.
-        button (str, int, optional): The mouse button released. TODO
+        button (str, int, optional): The mouse button to release. One of the constants LEFT, MIDDLE, RIGHT, PRIMARY, or SECONDARY.
         mouseDownUp (True, False): When true, the mouseUp/Down actions are not performed.
             Which allows dragging over multiple (small) actions. 'True' by default.
         logScreenshot: See utils/decorators/log_screenshot.py.

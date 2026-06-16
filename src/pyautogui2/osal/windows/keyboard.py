@@ -36,206 +36,206 @@ class WindowsKeyboard(AbstractKeyboard):
     # --- comprehensive Windows keys scancode (from winuser.h) ---
     SCANCODES_BASE: dict[str, int] = {
         # Control keys
-        'BACK':                 0x0E,
-        'TAB':                  0x0F,
-        'CLEAR':                0x00,  # No standard scan code
-        'RETURN':               0x1C,
-        'SHIFT':                0x2A,
-        'CONTROL':              0x1D,
-        'MENU':                 0x38,  # Alt
-        'PAUSE':                0x00,  # No standard scan code
-        'CAPITAL':              0x3A,
-        'KANA':                 0x00,
-        'HANGUEL':              0x00,
-        'HANGUL':               0x00,
-        'JUNJA':                0x00,
-        'FINAL':                0x00,
-        'HANJA':                0x00,
-        'KANJI':                0x00,
-        'ESCAPE':               0x01,
-        'CONVERT':              0x00,
-        'NONCONVERT':           0x00,
-        'ACCEPT':               0x00,
-        'MODECHANGE':           0x00,
-        'SPACE':                0x39,
-        'PRIOR':                0x49,  # Page Up (extended)
-        'NEXT':                 0x51,  # Page Down (extended)
-        'END':                  0x4F,  # (extended)
-        'HOME':                 0x47,  # (extended)
-        'LEFT':                 0x4B,  # (extended)
-        'UP':                   0x48,  # (extended)
-        'RIGHT':                0x4D,  # (extended)
-        'DOWN':                 0x50,  # (extended)
-        'SELECT':               0x00,
-        'PRINT':                0x00,
-        'EXECUTE':              0x00,
-        'SNAPSHOT':             0x54,  # Print Screen
-        'INSERT':               0x52,  # (extended)
-        'DELETE':               0x53,  # (extended)
-        'HELP':                 0x00,
+        "BACK":                 0x0E,
+        "TAB":                  0x0F,
+        "CLEAR":                0x00,  # No standard scan code
+        "RETURN":               0x1C,
+        "SHIFT":                0x2A,
+        "CONTROL":              0x1D,
+        "MENU":                 0x38,  # Alt
+        "PAUSE":                0x00,  # No standard scan code
+        "CAPITAL":              0x3A,
+        "KANA":                 0x00,
+        "HANGUEL":              0x00,
+        "HANGUL":               0x00,
+        "JUNJA":                0x00,
+        "FINAL":                0x00,
+        "HANJA":                0x00,
+        "KANJI":                0x00,
+        "ESCAPE":               0x01,
+        "CONVERT":              0x00,
+        "NONCONVERT":           0x00,
+        "ACCEPT":               0x00,
+        "MODECHANGE":           0x00,
+        "SPACE":                0x39,
+        "PRIOR":                0x49,  # Page Up (extended)
+        "NEXT":                 0x51,  # Page Down (extended)
+        "END":                  0x4F,  # (extended)
+        "HOME":                 0x47,  # (extended)
+        "LEFT":                 0x4B,  # (extended)
+        "UP":                   0x48,  # (extended)
+        "RIGHT":                0x4D,  # (extended)
+        "DOWN":                 0x50,  # (extended)
+        "SELECT":               0x00,
+        "PRINT":                0x00,
+        "EXECUTE":              0x00,
+        "SNAPSHOT":             0x54,  # Print Screen
+        "INSERT":               0x52,  # (extended)
+        "DELETE":               0x53,  # (extended)
+        "HELP":                 0x00,
 
         # Number row
-        '0':                    0x0B,
-        '1':                    0x02,
-        '2':                    0x03,
-        '3':                    0x04,
-        '4':                    0x05,
-        '5':                    0x06,
-        '6':                    0x07,
-        '7':                    0x08,
-        '8':                    0x09,
-        '9':                    0x0A,
+        "0":                    0x0B,
+        "1":                    0x02,
+        "2":                    0x03,
+        "3":                    0x04,
+        "4":                    0x05,
+        "5":                    0x06,
+        "6":                    0x07,
+        "7":                    0x08,
+        "8":                    0x09,
+        "9":                    0x0A,
 
         # Letters (physical positions, QWERTY layout reference)
-        'a':                    0x1E,
-        'b':                    0x30,
-        'c':                    0x2E,
-        'd':                    0x20,
-        'e':                    0x12,
-        'f':                    0x21,
-        'g':                    0x22,
-        'h':                    0x23,
-        'i':                    0x17,
-        'j':                    0x24,
-        'k':                    0x25,
-        'l':                    0x26,
-        'm':                    0x32,
-        'n':                    0x31,
-        'o':                    0x18,
-        'p':                    0x19,
-        'q':                    0x10,
-        'r':                    0x13,
-        's':                    0x1F,
-        't':                    0x14,
-        'u':                    0x16,
-        'v':                    0x2F,
-        'w':                    0x11,
-        'x':                    0x2D,
-        'y':                    0x15,
-        'z':                    0x2C,
+        "a":                    0x1E,
+        "b":                    0x30,
+        "c":                    0x2E,
+        "d":                    0x20,
+        "e":                    0x12,
+        "f":                    0x21,
+        "g":                    0x22,
+        "h":                    0x23,
+        "i":                    0x17,
+        "j":                    0x24,
+        "k":                    0x25,
+        "l":                    0x26,
+        "m":                    0x32,
+        "n":                    0x31,
+        "o":                    0x18,
+        "p":                    0x19,
+        "q":                    0x10,
+        "r":                    0x13,
+        "s":                    0x1F,
+        "t":                    0x14,
+        "u":                    0x16,
+        "v":                    0x2F,
+        "w":                    0x11,
+        "x":                    0x2D,
+        "y":                    0x15,
+        "z":                    0x2C,
 
         # System / special
-        'LWIN':                 0x5B,  # (extended)
-        'RWIN':                 0x5C,  # (extended)
-        'APPS':                 0x5D,  # (extended)
-        'SLEEP':                0x5F,  # (extended)
+        "LWIN":                 0x5B,  # (extended)
+        "RWIN":                 0x5C,  # (extended)
+        "APPS":                 0x5D,  # (extended)
+        "SLEEP":                0x5F,  # (extended)
 
         # Numpad
-        'NUMPAD0':              0x52,
-        'NUMPAD1':              0x4F,
-        'NUMPAD2':              0x50,
-        'NUMPAD3':              0x51,
-        'NUMPAD4':              0x4B,
-        'NUMPAD5':              0x4C,
-        'NUMPAD6':              0x4D,
-        'NUMPAD7':              0x47,
-        'NUMPAD8':              0x48,
-        'NUMPAD9':              0x49,
-        'MULTIPLY':             0x37,
-        'ADD':                  0x4E,
-        'SEPARATOR':            0x00,
-        'SUBTRACT':             0x4A,
-        'DECIMAL':              0x53,
-        'DIVIDE':               0x35,  # (extended)
+        "NUMPAD0":              0x52,
+        "NUMPAD1":              0x4F,
+        "NUMPAD2":              0x50,
+        "NUMPAD3":              0x51,
+        "NUMPAD4":              0x4B,
+        "NUMPAD5":              0x4C,
+        "NUMPAD6":              0x4D,
+        "NUMPAD7":              0x47,
+        "NUMPAD8":              0x48,
+        "NUMPAD9":              0x49,
+        "MULTIPLY":             0x37,
+        "ADD":                  0x4E,
+        "SEPARATOR":            0x00,
+        "SUBTRACT":             0x4A,
+        "DECIMAL":              0x53,
+        "DIVIDE":               0x35,  # (extended)
 
         # Function keys
-        'F1':                   0x3B,
-        'F2':                   0x3C,
-        'F3':                   0x3D,
-        'F4':                   0x3E,
-        'F5':                   0x3F,
-        'F6':                   0x40,
-        'F7':                   0x41,
-        'F8':                   0x42,
-        'F9':                   0x43,
-        'F10':                  0x44,
-        'F11':                  0x57,
-        'F12':                  0x58,
-        'F13':                  0x64,
-        'F14':                  0x65,
-        'F15':                  0x66,
-        'F16':                  0x67,
-        'F17':                  0x68,
-        'F18':                  0x69,
-        'F19':                  0x6A,
-        'F20':                  0x6B,
-        'F21':                  0x6C,
-        'F22':                  0x6D,
-        'F23':                  0x6E,
-        'F24':                  0x76,
+        "F1":                   0x3B,
+        "F2":                   0x3C,
+        "F3":                   0x3D,
+        "F4":                   0x3E,
+        "F5":                   0x3F,
+        "F6":                   0x40,
+        "F7":                   0x41,
+        "F8":                   0x42,
+        "F9":                   0x43,
+        "F10":                  0x44,
+        "F11":                  0x57,
+        "F12":                  0x58,
+        "F13":                  0x64,
+        "F14":                  0x65,
+        "F15":                  0x66,
+        "F16":                  0x67,
+        "F17":                  0x68,
+        "F18":                  0x69,
+        "F19":                  0x6A,
+        "F20":                  0x6B,
+        "F21":                  0x6C,
+        "F22":                  0x6D,
+        "F23":                  0x6E,
+        "F24":                  0x76,
 
         # Lock keys
-        'NUMLOCK':              0x45,
-        'SCROLL':               0x46,
+        "NUMLOCK":              0x45,
+        "SCROLL":               0x46,
 
         # Modifier keys (left/right)
-        'LSHIFT':               0x2A,
-        'RSHIFT':               0x36,
-        'LCONTROL':             0x1D,
-        'RCONTROL':             0x1D,  # (extended)
-        'LMENU':                0x38,
-        'RMENU':                0x38,  # (extended)
+        "LSHIFT":               0x2A,
+        "RSHIFT":               0x36,
+        "LCONTROL":             0x1D,
+        "RCONTROL":             0x1D,  # (extended)
+        "LMENU":                0x38,
+        "RMENU":                0x38,  # (extended)
 
         # Media / browser keys (all extended, no classic scan code)
-        'BROWSER_BACK':         0x6A,
-        'BROWSER_FORWARD':      0x69,
-        'BROWSER_REFRESH':      0x67,
-        'BROWSER_STOP':         0x68,
-        'BROWSER_SEARCH':       0x65,
-        'BROWSER_FAVORITES':    0x66,
-        'BROWSER_HOME':         0x32,
-        'VOLUME_MUTE':          0x20,
-        'VOLUME_DOWN':          0x2E,
-        'VOLUME_UP':            0x30,
-        'MEDIA_NEXT_TRACK':     0x19,
-        'MEDIA_PREV_TRACK':     0x10,
-        'MEDIA_STOP':           0x24,
-        'MEDIA_PLAY_PAUSE':     0x22,
-        'LAUNCH_MAIL':          0x6C,
-        'LAUNCH_MEDIA_SELECT':  0x6D,
-        'LAUNCH_APP1':          0x6B,
-        'LAUNCH_APP2':          0x21,
+        "BROWSER_BACK":         0x6A,
+        "BROWSER_FORWARD":      0x69,
+        "BROWSER_REFRESH":      0x67,
+        "BROWSER_STOP":         0x68,
+        "BROWSER_SEARCH":       0x65,
+        "BROWSER_FAVORITES":    0x66,
+        "BROWSER_HOME":         0x32,
+        "VOLUME_MUTE":          0x20,
+        "VOLUME_DOWN":          0x2E,
+        "VOLUME_UP":            0x30,
+        "MEDIA_NEXT_TRACK":     0x19,
+        "MEDIA_PREV_TRACK":     0x10,
+        "MEDIA_STOP":           0x24,
+        "MEDIA_PLAY_PAUSE":     0x22,
+        "LAUNCH_MAIL":          0x6C,
+        "LAUNCH_MEDIA_SELECT":  0x6D,
+        "LAUNCH_APP1":          0x6B,
+        "LAUNCH_APP2":          0x21,
 
         # OEM keys
-        'OEM_1_SEMICOLON':      0x27,
-        'OEM_PLUS':             0x0D,
-        'OEM_COMMA':            0x33,
-        'OEM_MINUS':            0x0C,
-        'OEM_PERIOD':           0x34,
-        'OEM_2_SLASH':          0x35,
-        'OEM_3_GRAVE':          0x29,
-        'OEM_4_LBRACE':         0x1A,
-        'OEM_5_BACKSLASH':      0x2B,
-        'OEM_6_RBRACE':         0x1B,
-        'OEM_7_QUOTE':          0x28,
-        'OEM_8_RCTRL':          0x00,
+        "OEM_1_SEMICOLON":      0x27,
+        "OEM_PLUS":             0x0D,
+        "OEM_COMMA":            0x33,
+        "OEM_MINUS":            0x0C,
+        "OEM_PERIOD":           0x34,
+        "OEM_2_SLASH":          0x35,
+        "OEM_3_GRAVE":          0x29,
+        "OEM_4_LBRACE":         0x1A,
+        "OEM_5_BACKSLASH":      0x2B,
+        "OEM_6_RBRACE":         0x1B,
+        "OEM_7_QUOTE":          0x28,
+        "OEM_8_RCTRL":          0x00,
 
         # Misc
-        'PACKET':               0x00,
-        'ATTN':                 0x00,
-        'CRSEL':                0x00,
-        'EXSEL':                0x00,
-        'EREOF':                0x00,
-        'PLAY':                 0x00,
-        'ZOOM':                 0x00,
-        'NONAME':               0x00,
-        'PA1':                  0x00,
-        'OEM_CLEAR':            0x00,
+        "PACKET":               0x00,
+        "ATTN":                 0x00,
+        "CRSEL":                0x00,
+        "EXSEL":                0x00,
+        "EREOF":                0x00,
+        "PLAY":                 0x00,
+        "ZOOM":                 0x00,
+        "NONAME":               0x00,
+        "PA1":                  0x00,
+        "OEM_CLEAR":            0x00,
     }
 
     # Keys that require the KEYEVENTF_EXTENDEDKEY flag in SendInput
     EXTENDED_KEYS: set[str] = {
-        'PRIOR', 'NEXT', 'END', 'HOME',
-        'LEFT', 'UP', 'RIGHT', 'DOWN',
-        'INSERT', 'DELETE', 'SNAPSHOT',
-        'DIVIDE', 'NUMLOCK',
-        'LWIN', 'RWIN', 'APPS', 'SLEEP',
-        'RCONTROL', 'RMENU',
-        'BROWSER_BACK', 'BROWSER_FORWARD', 'BROWSER_REFRESH', 'BROWSER_STOP',
-        'BROWSER_SEARCH', 'BROWSER_FAVORITES', 'BROWSER_HOME',
-        'VOLUME_MUTE', 'VOLUME_DOWN', 'VOLUME_UP',
-        'MEDIA_NEXT_TRACK', 'MEDIA_PREV_TRACK', 'MEDIA_STOP', 'MEDIA_PLAY_PAUSE',
-        'LAUNCH_MAIL', 'LAUNCH_MEDIA_SELECT', 'LAUNCH_APP1', 'LAUNCH_APP2',
+        "PRIOR", "NEXT", "END", "HOME",
+        "LEFT", "UP", "RIGHT", "DOWN",
+        "INSERT", "DELETE", "SNAPSHOT",
+        "DIVIDE", "NUMLOCK",
+        "LWIN", "RWIN", "APPS", "SLEEP",
+        "RCONTROL", "RMENU",
+        "BROWSER_BACK", "BROWSER_FORWARD", "BROWSER_REFRESH", "BROWSER_STOP",
+        "BROWSER_SEARCH", "BROWSER_FAVORITES", "BROWSER_HOME",
+        "VOLUME_MUTE", "VOLUME_DOWN", "VOLUME_UP",
+        "MEDIA_NEXT_TRACK", "MEDIA_PREV_TRACK", "MEDIA_STOP", "MEDIA_PLAY_PAUSE",
+        "LAUNCH_MAIL", "LAUNCH_MEDIA_SELECT", "LAUNCH_APP1", "LAUNCH_APP2",
     }
 
     INPUT_KEYBOARD = 1
@@ -256,8 +256,9 @@ class WindowsKeyboard(AbstractKeyboard):
         # Store modifier scancodes for internal use
         self._mods_scancodes: tuple = ()
 
-        self._char_map: dict[str, tuple[tuple[ScanCode, bool], str] | tuple[tuple[None, bool], None]] = {}
-
+        self._char_map: dict[
+            str, tuple[tuple[ScanCode, bool], str] | tuple[tuple[None, bool], None]
+        ] = {}
 
     # --------------------------
     # Setup
@@ -276,11 +277,13 @@ class WindowsKeyboard(AbstractKeyboard):
 
         layout = self.get_layout()
         if layout not in all_keymapping:
-            raise PyAutoGUIException(f"Error: unsupported layout '{layout}'. Expected one of {list(all_keymapping.keys())}")
+            raise PyAutoGUIException(
+                f"Error: unsupported layout '{layout}'. Expected one of {list(all_keymapping.keys())}"
+            )
 
         self._mods_scancodes = (
-            ('shift', self._get_scancode('SHIFT')),
-            ('altgr', self._get_scancode('RMENU')),
+            ("shift", self._get_scancode("SHIFT")),
+            ("altgr", self._get_scancode("RMENU")),
         )
 
         # ------------------------------------------------------------------
@@ -326,118 +329,118 @@ class WindowsKeyboard(AbstractKeyboard):
         self._char_map.update({
 
             # --- Control keys ---
-            '\t':            (self._get_scancode("TAB"), ""),
-            '\n':            (self._get_scancode("RETURN"), ""),
-            '\r':            (self._get_scancode("RETURN"), ""),
-            '\b':            (self._get_scancode("BACK"), ""),
-            ' ':             (self._get_scancode("SPACE"), ""),
-            'alt':           (self._get_scancode("MENU"), ""),
-            'altgr':         (self._get_scancode("RMENU"), ""),
-            'altleft':       (self._get_scancode("LMENU"), ""),
-            'altright':      (self._get_scancode("RMENU"), ""),
-            'backspace':     (self._get_scancode("BACK"), ""),
-            'capslock':      (self._get_scancode("CAPITAL"), ""),
-            'ctrl':          (self._get_scancode("CONTROL"), ""),
-            'ctrlleft':      (self._get_scancode("LCONTROL"), ""),
-            'ctrlright':     (self._get_scancode("RCONTROL"), ""),
-            'del':           (self._get_scancode("DELETE"), ""),
-            'delete':        (self._get_scancode("DELETE"), ""),
-            'enter':         (self._get_scancode("RETURN"), ""),
-            'esc':           (self._get_scancode("ESCAPE"), ""),
-            'escape':        (self._get_scancode("ESCAPE"), ""),
-            'help':          (self._get_scancode("HELP"), ""),
-            'return':        (self._get_scancode("RETURN"), ""),
-            'shift':         (self._get_scancode("SHIFT"), ""),
-            'shiftleft':     (self._get_scancode("LSHIFT"), ""),
-            'shiftright':    (self._get_scancode("RSHIFT"), ""),
-            'space':         (self._get_scancode("SPACE"), ""),
-            'tab':           (self._get_scancode("TAB"), ""),
-            'win':           (self._get_scancode("LWIN"), ""),
-            'winleft':       (self._get_scancode("LWIN"), ""),
-            'winright':      (self._get_scancode("RWIN"), ""),
-            'option':        (self._get_scancode("MENU"), ""),   # alias for alt
-            'optionleft':    (self._get_scancode("LMENU"), ""),  # alias for altleft
-            'optionright':   (self._get_scancode("RMENU"), ""),  # alias for altright
+            "\t":            (self._get_scancode("TAB"), ""),
+            "\n":            (self._get_scancode("RETURN"), ""),
+            "\r":            (self._get_scancode("RETURN"), ""),
+            "\b":            (self._get_scancode("BACK"), ""),
+            " ":             (self._get_scancode("SPACE"), ""),
+            "alt":           (self._get_scancode("MENU"), ""),
+            "altgr":         (self._get_scancode("RMENU"), ""),
+            "altleft":       (self._get_scancode("LMENU"), ""),
+            "altright":      (self._get_scancode("RMENU"), ""),
+            "backspace":     (self._get_scancode("BACK"), ""),
+            "capslock":      (self._get_scancode("CAPITAL"), ""),
+            "ctrl":          (self._get_scancode("CONTROL"), ""),
+            "ctrlleft":      (self._get_scancode("LCONTROL"), ""),
+            "ctrlright":     (self._get_scancode("RCONTROL"), ""),
+            "del":           (self._get_scancode("DELETE"), ""),
+            "delete":        (self._get_scancode("DELETE"), ""),
+            "enter":         (self._get_scancode("RETURN"), ""),
+            "esc":           (self._get_scancode("ESCAPE"), ""),
+            "escape":        (self._get_scancode("ESCAPE"), ""),
+            "help":          (self._get_scancode("HELP"), ""),
+            "return":        (self._get_scancode("RETURN"), ""),
+            "shift":         (self._get_scancode("SHIFT"), ""),
+            "shiftleft":     (self._get_scancode("LSHIFT"), ""),
+            "shiftright":    (self._get_scancode("RSHIFT"), ""),
+            "space":         (self._get_scancode("SPACE"), ""),
+            "tab":           (self._get_scancode("TAB"), ""),
+            "win":           (self._get_scancode("LWIN"), ""),
+            "winleft":       (self._get_scancode("LWIN"), ""),
+            "winright":      (self._get_scancode("RWIN"), ""),
+            "option":        (self._get_scancode("MENU"), ""),   # alias for alt
+            "optionleft":    (self._get_scancode("LMENU"), ""),  # alias for altleft
+            "optionright":   (self._get_scancode("RMENU"), ""),  # alias for altright
 
             # --- Navigation keys ---
-            'down':       (self._get_scancode("DOWN"), ""),
-            'end':        (self._get_scancode("END"), ""),
-            'final':      (self._get_scancode("END"), ""),
-            'home':       (self._get_scancode("HOME"), ""),
-            'left':       (self._get_scancode("LEFT"), ""),
-            'pagedown':   (self._get_scancode("NEXT"), ""),
-            'pageup':     (self._get_scancode("PRIOR"), ""),
-            'pgdn':       (self._get_scancode("NEXT"), ""),
-            'pgup':       (self._get_scancode("PRIOR"), ""),
-            'right':      (self._get_scancode("RIGHT"), ""),
-            'up':         (self._get_scancode("UP"), ""),
+            "down":       (self._get_scancode("DOWN"), ""),
+            "end":        (self._get_scancode("END"), ""),
+            "final":      (self._get_scancode("END"), ""),
+            "home":       (self._get_scancode("HOME"), ""),
+            "left":       (self._get_scancode("LEFT"), ""),
+            "pagedown":   (self._get_scancode("NEXT"), ""),
+            "pageup":     (self._get_scancode("PRIOR"), ""),
+            "pgdn":       (self._get_scancode("NEXT"), ""),
+            "pgup":       (self._get_scancode("PRIOR"), ""),
+            "right":      (self._get_scancode("RIGHT"), ""),
+            "up":         (self._get_scancode("UP"), ""),
 
             # --- Function keys ---
-            'f1':    (self._get_scancode("F1"), ""),
-            'f2':    (self._get_scancode("F2"), ""),
-            'f3':    (self._get_scancode("F3"), ""),
-            'f4':    (self._get_scancode("F4"), ""),
-            'f5':    (self._get_scancode("F5"), ""),
-            'f6':    (self._get_scancode("F6"), ""),
-            'f7':    (self._get_scancode("F7"), ""),
-            'f8':    (self._get_scancode("F8"), ""),
-            'f9':    (self._get_scancode("F9"), ""),
-            'f10':   (self._get_scancode("F10"), ""),
-            'f11':   (self._get_scancode("F11"), ""),
-            'f12':   (self._get_scancode("F12"), ""),
-            'f13':   (self._get_scancode("F13"), ""),
-            'f14':   (self._get_scancode("F14"), ""),
-            'f15':   (self._get_scancode("F15"), ""),
-            'f16':   (self._get_scancode("F16"), ""),
-            'f17':   (self._get_scancode("F17"), ""),
-            'f18':   (self._get_scancode("F18"), ""),
-            'f19':   (self._get_scancode("F19"), ""),
-            'f20':   (self._get_scancode("F20"), ""),
-            'f21':   (self._get_scancode("F21"), ""),
-            'f22':   (self._get_scancode("F22"), ""),
-            'f23':   (self._get_scancode("F23"), ""),
-            'f24':   (self._get_scancode("F24"), ""),
+            "f1":    (self._get_scancode("F1"), ""),
+            "f2":    (self._get_scancode("F2"), ""),
+            "f3":    (self._get_scancode("F3"), ""),
+            "f4":    (self._get_scancode("F4"), ""),
+            "f5":    (self._get_scancode("F5"), ""),
+            "f6":    (self._get_scancode("F6"), ""),
+            "f7":    (self._get_scancode("F7"), ""),
+            "f8":    (self._get_scancode("F8"), ""),
+            "f9":    (self._get_scancode("F9"), ""),
+            "f10":   (self._get_scancode("F10"), ""),
+            "f11":   (self._get_scancode("F11"), ""),
+            "f12":   (self._get_scancode("F12"), ""),
+            "f13":   (self._get_scancode("F13"), ""),
+            "f14":   (self._get_scancode("F14"), ""),
+            "f15":   (self._get_scancode("F15"), ""),
+            "f16":   (self._get_scancode("F16"), ""),
+            "f17":   (self._get_scancode("F17"), ""),
+            "f18":   (self._get_scancode("F18"), ""),
+            "f19":   (self._get_scancode("F19"), ""),
+            "f20":   (self._get_scancode("F20"), ""),
+            "f21":   (self._get_scancode("F21"), ""),
+            "f22":   (self._get_scancode("F22"), ""),
+            "f23":   (self._get_scancode("F23"), ""),
+            "f24":   (self._get_scancode("F24"), ""),
 
             # --- Numpad ---
-            'add':         (self._get_scancode("ADD"), ""),
-            'decimal':     (self._get_scancode("DECIMAL"), ""),
-            'divide':      (self._get_scancode("DIVIDE"), ""),
-            'multiply':    (self._get_scancode("MULTIPLY"), ""),
-            'num0':        (self._get_scancode("NUMPAD0"), ""),
-            'num1':        (self._get_scancode("NUMPAD1"), ""),
-            'num2':        (self._get_scancode("NUMPAD2"), ""),
-            'num3':        (self._get_scancode("NUMPAD3"), ""),
-            'num4':        (self._get_scancode("NUMPAD4"), ""),
-            'num5':        (self._get_scancode("NUMPAD5"), ""),
-            'num6':        (self._get_scancode("NUMPAD6"), ""),
-            'num7':        (self._get_scancode("NUMPAD7"), ""),
-            'num8':        (self._get_scancode("NUMPAD8"), ""),
-            'num9':        (self._get_scancode("NUMPAD9"), ""),
-            'numlock':     (self._get_scancode("NUMLOCK"), ""),
-            'separator':   (self._get_scancode("SEPARATOR"), ""),
-            'subtract':    (self._get_scancode("SUBTRACT"), ""),
+            "add":         (self._get_scancode("ADD"), ""),
+            "decimal":     (self._get_scancode("DECIMAL"), ""),
+            "divide":      (self._get_scancode("DIVIDE"), ""),
+            "multiply":    (self._get_scancode("MULTIPLY"), ""),
+            "num0":        (self._get_scancode("NUMPAD0"), ""),
+            "num1":        (self._get_scancode("NUMPAD1"), ""),
+            "num2":        (self._get_scancode("NUMPAD2"), ""),
+            "num3":        (self._get_scancode("NUMPAD3"), ""),
+            "num4":        (self._get_scancode("NUMPAD4"), ""),
+            "num5":        (self._get_scancode("NUMPAD5"), ""),
+            "num6":        (self._get_scancode("NUMPAD6"), ""),
+            "num7":        (self._get_scancode("NUMPAD7"), ""),
+            "num8":        (self._get_scancode("NUMPAD8"), ""),
+            "num9":        (self._get_scancode("NUMPAD9"), ""),
+            "numlock":     (self._get_scancode("NUMLOCK"), ""),
+            "separator":   (self._get_scancode("SEPARATOR"), ""),
+            "subtract":    (self._get_scancode("SUBTRACT"), ""),
 
             # --- Media / system keys ---
-            'apps':         (self._get_scancode("APPS"), ""),
-            'insert':       (self._get_scancode("INSERT"), ""),
-            'select':       (self._get_scancode("SELECT"), ""),
-            'pause':        (self._get_scancode("PAUSE"), ""),
-            'print':        (self._get_scancode("SNAPSHOT"), ""),
-            'printscreen':  (self._get_scancode("SNAPSHOT"), ""),
-            'prntscrn':     (self._get_scancode("SNAPSHOT"), ""),
-            'prtsc':        (self._get_scancode("SNAPSHOT"), ""),
-            'prtscr':       (self._get_scancode("SNAPSHOT"), ""),
-            'scrolllock':   (self._get_scancode("SCROLL"), ""),
-            'execute':      (self._get_scancode("EXECUTE"), ""),
+            "apps":         (self._get_scancode("APPS"), ""),
+            "insert":       (self._get_scancode("INSERT"), ""),
+            "select":       (self._get_scancode("SELECT"), ""),
+            "pause":        (self._get_scancode("PAUSE"), ""),
+            "print":        (self._get_scancode("SNAPSHOT"), ""),
+            "printscreen":  (self._get_scancode("SNAPSHOT"), ""),
+            "prntscrn":     (self._get_scancode("SNAPSHOT"), ""),
+            "prtsc":        (self._get_scancode("SNAPSHOT"), ""),
+            "prtscr":       (self._get_scancode("SNAPSHOT"), ""),
+            "scrolllock":   (self._get_scancode("SCROLL"), ""),
+            "execute":      (self._get_scancode("EXECUTE"), ""),
 
             # --- Browser keys (not implemented) ---
-            'browserback':        (self._get_scancode("BROWSER_BACK"), ""),
-            'browserfavorites':   (self._get_scancode("BROWSER_FAVORITES"), ""),
-            'browserforward':     (self._get_scancode("BROWSER_FORWARD"), ""),
-            'browserhome':        (self._get_scancode("BROWSER_HOME"), ""),
-            'browserrefresh':     (self._get_scancode("BROWSER_REFRESH"), ""),
-            'browsersearch':      (self._get_scancode("BROWSER_SEARCH"), ""),
-            'browserstop':        (self._get_scancode("BROWSER_STOP"), ""),
+            "browserback":        (self._get_scancode("BROWSER_BACK"), ""),
+            "browserfavorites":   (self._get_scancode("BROWSER_FAVORITES"), ""),
+            "browserforward":     (self._get_scancode("BROWSER_FORWARD"), ""),
+            "browserhome":        (self._get_scancode("BROWSER_HOME"), ""),
+            "browserrefresh":     (self._get_scancode("BROWSER_REFRESH"), ""),
+            "browsersearch":      (self._get_scancode("BROWSER_SEARCH"), ""),
+            "browserstop":        (self._get_scancode("BROWSER_STOP"), ""),
 
             # --- Other specials (not implemented or rarely used) ---
             # "hanguel"
@@ -469,10 +472,11 @@ class WindowsKeyboard(AbstractKeyboard):
         return (0, False)
 
     def _detect_layout(self) -> str:
-        """Detect the active input layout (e.g., '0x0409' for 'US', '0x040C' for 'French', etc.).
-        """
+        """Detect the active input layout (e.g., '0x0409' for 'US', '0x040C' for 'French', etc.)."""
         try:
-            with self._winreg.OpenKey(self._winreg.HKEY_LOCAL_MACHINE, r"SYSTEM\Keyboard Layout\Preload") as key:
+            with self._winreg.OpenKey(
+                self._winreg.HKEY_LOCAL_MACHINE, r"SYSTEM\Keyboard Layout\Preload"
+            ) as key:
                 klid, _ = self._winreg.QueryValueEx(key, "1")
                 lid_hex = int(klid, 16)
         except Exception:
@@ -588,9 +592,9 @@ class WindowsKeyboard(AbstractKeyboard):
             scancodes = [codepoint]
         else:
             # Supplementary plane: encode as UTF-16 surrogate pair
-            encoded = char.encode('utf-16-le')  # 4 bytes for surrogate pair
-            high = int.from_bytes(encoded[0:2], 'little')  # high surrogate
-            low  = int.from_bytes(encoded[2:4], 'little')  # low surrogate
+            encoded = char.encode("utf-16-le")  # 4 bytes for surrogate pair
+            high = int.from_bytes(encoded[0:2], "little")  # high surrogate
+            low  = int.from_bytes(encoded[2:4], "little")  # low surrogate
             scancodes = [high, low]
 
         for sc in scancodes:
@@ -624,10 +628,10 @@ class WindowsKeyboard(AbstractKeyboard):
     def get_layout(self) -> str:
         layout = self._detect_layout()
 
-        if layout not in KEYBOARD_LAYOUTS['windows']:
+        if layout not in KEYBOARD_LAYOUTS["windows"]:
             raise PyAutoGUIException(f"Layout '{layout}' is unsupported by PyAutoGUI")
 
-        return KEYBOARD_LAYOUTS['windows'][layout]['layout']
+        return KEYBOARD_LAYOUTS["windows"][layout]["layout"]
 
     def key_down(self, key: str, **_kwargs: Any) -> None:
         self._emit_key(key, press=True)

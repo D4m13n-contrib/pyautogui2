@@ -89,8 +89,8 @@ class WaylandKeyboardPart(AbstractKeyboard):
         time.sleep(0.1)     # Let's give the OS some time to create the device
 
         self._mods_keycodes = (
-            ('shift', self._uinput.KEY_LEFTSHIFT),
-            ('altgr', self._uinput.KEY_RIGHTALT),
+            ("shift", self._uinput.KEY_LEFTSHIFT),
+            ("altgr", self._uinput.KEY_RIGHTALT),
         )
 
         # ------------------------------------------------------------------
@@ -131,138 +131,138 @@ class WaylandKeyboardPart(AbstractKeyboard):
         # Extra mapping for keys not covered by all_keys (organized by category)
         # ------------------------------------------------------------------
         key_decimal = self._uinput.KEY_KPDOT      # by default
-        if layout in ('AZERTY', 'QWERTZ'):
+        if layout in ("AZERTY", "QWERTZ"):
             key_decimal = self._uinput.KEY_KPCOMMA
 
         self._char_map.update({
 
             # --- Control keys ---
-            '\t':           (self._uinput.KEY_TAB, ""),
-            '\n':           (self._uinput.KEY_ENTER, ""),
-            '\r':           (self._uinput.KEY_ENTER, ""),
-            '\b':           (self._uinput.KEY_BACKSPACE, ""),
-            ' ':            (self._uinput.KEY_SPACE, ""),
-            'alt':          (self._uinput.KEY_LEFTALT, ""),
-            'altgr':        (self._uinput.KEY_RIGHTALT, ""),
-            'altleft':      (self._uinput.KEY_LEFTALT, ""),
-            'altright':     (self._uinput.KEY_RIGHTALT, ""),
-            'backspace':    (self._uinput.KEY_BACKSPACE, ""),
-            'capslock':     (self._uinput.KEY_CAPSLOCK, ""),
-            'ctrl':         (self._uinput.KEY_LEFTCTRL, ""),
-            'ctrlleft':     (self._uinput.KEY_LEFTCTRL, ""),
-            'ctrlright':    (self._uinput.KEY_RIGHTCTRL, ""),
-            'del':          (self._uinput.KEY_DELETE, ""),
-            'delete':       (self._uinput.KEY_DELETE, ""),
-            'enter':        (self._uinput.KEY_ENTER, ""),
-            'esc':          (self._uinput.KEY_ESC, ""),
-            'escape':       (self._uinput.KEY_ESC, ""),
-            'fn':           (self._uinput.KEY_FN, ""),
-            'help':         (self._uinput.KEY_HELP, ""),
-            'return':       (self._uinput.KEY_ENTER, ""),
-            'shift':        (self._uinput.KEY_LEFTSHIFT, ""),
-            'shiftleft':    (self._uinput.KEY_LEFTSHIFT, ""),
-            'shiftright':   (self._uinput.KEY_RIGHTSHIFT, ""),
-            'space':        (self._uinput.KEY_SPACE, ""),
-            'tab':          (self._uinput.KEY_TAB, ""),
-            'win':          (self._uinput.KEY_LEFTMETA, ""),
-            'winleft':      (self._uinput.KEY_LEFTMETA, ""),
-            'winright':     (self._uinput.KEY_RIGHTMETA, ""),
-            'option':       (self._uinput.KEY_LEFTALT, ""),       # alias for alt
-            'optionleft':   (self._uinput.KEY_LEFTALT, ""),       # alias for altleft
-            'optionright':  (self._uinput.KEY_RIGHTALT, ""),      # alias for altright
+            "\t":           (self._uinput.KEY_TAB, ""),
+            "\n":           (self._uinput.KEY_ENTER, ""),
+            "\r":           (self._uinput.KEY_ENTER, ""),
+            "\b":           (self._uinput.KEY_BACKSPACE, ""),
+            " ":            (self._uinput.KEY_SPACE, ""),
+            "alt":          (self._uinput.KEY_LEFTALT, ""),
+            "altgr":        (self._uinput.KEY_RIGHTALT, ""),
+            "altleft":      (self._uinput.KEY_LEFTALT, ""),
+            "altright":     (self._uinput.KEY_RIGHTALT, ""),
+            "backspace":    (self._uinput.KEY_BACKSPACE, ""),
+            "capslock":     (self._uinput.KEY_CAPSLOCK, ""),
+            "ctrl":         (self._uinput.KEY_LEFTCTRL, ""),
+            "ctrlleft":     (self._uinput.KEY_LEFTCTRL, ""),
+            "ctrlright":    (self._uinput.KEY_RIGHTCTRL, ""),
+            "del":          (self._uinput.KEY_DELETE, ""),
+            "delete":       (self._uinput.KEY_DELETE, ""),
+            "enter":        (self._uinput.KEY_ENTER, ""),
+            "esc":          (self._uinput.KEY_ESC, ""),
+            "escape":       (self._uinput.KEY_ESC, ""),
+            "fn":           (self._uinput.KEY_FN, ""),
+            "help":         (self._uinput.KEY_HELP, ""),
+            "return":       (self._uinput.KEY_ENTER, ""),
+            "shift":        (self._uinput.KEY_LEFTSHIFT, ""),
+            "shiftleft":    (self._uinput.KEY_LEFTSHIFT, ""),
+            "shiftright":   (self._uinput.KEY_RIGHTSHIFT, ""),
+            "space":        (self._uinput.KEY_SPACE, ""),
+            "tab":          (self._uinput.KEY_TAB, ""),
+            "win":          (self._uinput.KEY_LEFTMETA, ""),
+            "winleft":      (self._uinput.KEY_LEFTMETA, ""),
+            "winright":     (self._uinput.KEY_RIGHTMETA, ""),
+            "option":       (self._uinput.KEY_LEFTALT, ""),       # alias for alt
+            "optionleft":   (self._uinput.KEY_LEFTALT, ""),       # alias for altleft
+            "optionright":  (self._uinput.KEY_RIGHTALT, ""),      # alias for altright
 
             # --- Navigation keys ---
-            'down':      (self._uinput.KEY_DOWN, ""),
-            'end':       (self._uinput.KEY_END, ""),
-            'final':     (self._uinput.KEY_END, ""),
-            'home':      (self._uinput.KEY_HOME, ""),
-            'insert':    (self._uinput.KEY_INSERT, ""),
-            'left':      (self._uinput.KEY_LEFT, ""),
-            'pagedown':  (self._uinput.KEY_PAGEDOWN, ""),
-            'pageup':    (self._uinput.KEY_PAGEUP, ""),
-            'pgdn':      (self._uinput.KEY_PAGEDOWN, ""),
-            'pgup':      (self._uinput.KEY_PAGEUP, ""),
-            'right':     (self._uinput.KEY_RIGHT, ""),
-            'select':    (self._uinput.KEY_SELECT, ""),
-            'up':        (self._uinput.KEY_UP, ""),
+            "down":      (self._uinput.KEY_DOWN, ""),
+            "end":       (self._uinput.KEY_END, ""),
+            "final":     (self._uinput.KEY_END, ""),
+            "home":      (self._uinput.KEY_HOME, ""),
+            "insert":    (self._uinput.KEY_INSERT, ""),
+            "left":      (self._uinput.KEY_LEFT, ""),
+            "pagedown":  (self._uinput.KEY_PAGEDOWN, ""),
+            "pageup":    (self._uinput.KEY_PAGEUP, ""),
+            "pgdn":      (self._uinput.KEY_PAGEDOWN, ""),
+            "pgup":      (self._uinput.KEY_PAGEUP, ""),
+            "right":     (self._uinput.KEY_RIGHT, ""),
+            "select":    (self._uinput.KEY_SELECT, ""),
+            "up":        (self._uinput.KEY_UP, ""),
 
             # --- Function keys ---
-            'f1':   (self._uinput.KEY_F1, ""),
-            'f2':   (self._uinput.KEY_F2, ""),
-            'f3':   (self._uinput.KEY_F3, ""),
-            'f4':   (self._uinput.KEY_F4, ""),
-            'f5':   (self._uinput.KEY_F5, ""),
-            'f6':   (self._uinput.KEY_F6, ""),
-            'f7':   (self._uinput.KEY_F7, ""),
-            'f8':   (self._uinput.KEY_F8, ""),
-            'f9':   (self._uinput.KEY_F9, ""),
-            'f10':  (self._uinput.KEY_F10, ""),
-            'f11':  (self._uinput.KEY_F11, ""),
-            'f12':  (self._uinput.KEY_F12, ""),
-            'f13':  (self._uinput.KEY_F13, ""),
-            'f14':  (self._uinput.KEY_F14, ""),
-            'f15':  (self._uinput.KEY_F15, ""),
-            'f16':  (self._uinput.KEY_F16, ""),
-            'f17':  (self._uinput.KEY_F17, ""),
-            'f18':  (self._uinput.KEY_F18, ""),
-            'f19':  (self._uinput.KEY_F19, ""),
-            'f20':  (self._uinput.KEY_F20, ""),
-            'f21':  (self._uinput.KEY_F21, ""),
-            'f22':  (self._uinput.KEY_F22, ""),
-            'f23':  (self._uinput.KEY_F23, ""),
-            'f24':  (self._uinput.KEY_F24, ""),
+            "f1":   (self._uinput.KEY_F1, ""),
+            "f2":   (self._uinput.KEY_F2, ""),
+            "f3":   (self._uinput.KEY_F3, ""),
+            "f4":   (self._uinput.KEY_F4, ""),
+            "f5":   (self._uinput.KEY_F5, ""),
+            "f6":   (self._uinput.KEY_F6, ""),
+            "f7":   (self._uinput.KEY_F7, ""),
+            "f8":   (self._uinput.KEY_F8, ""),
+            "f9":   (self._uinput.KEY_F9, ""),
+            "f10":  (self._uinput.KEY_F10, ""),
+            "f11":  (self._uinput.KEY_F11, ""),
+            "f12":  (self._uinput.KEY_F12, ""),
+            "f13":  (self._uinput.KEY_F13, ""),
+            "f14":  (self._uinput.KEY_F14, ""),
+            "f15":  (self._uinput.KEY_F15, ""),
+            "f16":  (self._uinput.KEY_F16, ""),
+            "f17":  (self._uinput.KEY_F17, ""),
+            "f18":  (self._uinput.KEY_F18, ""),
+            "f19":  (self._uinput.KEY_F19, ""),
+            "f20":  (self._uinput.KEY_F20, ""),
+            "f21":  (self._uinput.KEY_F21, ""),
+            "f22":  (self._uinput.KEY_F22, ""),
+            "f23":  (self._uinput.KEY_F23, ""),
+            "f24":  (self._uinput.KEY_F24, ""),
 
             # --- Numpad ---
-            'add':       (self._uinput.KEY_KPPLUS, ""),
-            'decimal':   (key_decimal, ""),
-            'divide':    (self._uinput.KEY_KPSLASH, ""),
-            'multiply':  (self._uinput.KEY_KPASTERISK, ""),
-            'num0':      (self._uinput.KEY_KP0, ""),
-            'num1':      (self._uinput.KEY_KP1, ""),
-            'num2':      (self._uinput.KEY_KP2, ""),
-            'num3':      (self._uinput.KEY_KP3, ""),
-            'num4':      (self._uinput.KEY_KP4, ""),
-            'num5':      (self._uinput.KEY_KP5, ""),
-            'num6':      (self._uinput.KEY_KP6, ""),
-            'num7':      (self._uinput.KEY_KP7, ""),
-            'num8':      (self._uinput.KEY_KP8, ""),
-            'num9':      (self._uinput.KEY_KP9, ""),
-            'numlock':   (self._uinput.KEY_NUMLOCK, ""),
-            'subtract':  (self._uinput.KEY_KPMINUS, ""),
+            "add":       (self._uinput.KEY_KPPLUS, ""),
+            "decimal":   (key_decimal, ""),
+            "divide":    (self._uinput.KEY_KPSLASH, ""),
+            "multiply":  (self._uinput.KEY_KPASTERISK, ""),
+            "num0":      (self._uinput.KEY_KP0, ""),
+            "num1":      (self._uinput.KEY_KP1, ""),
+            "num2":      (self._uinput.KEY_KP2, ""),
+            "num3":      (self._uinput.KEY_KP3, ""),
+            "num4":      (self._uinput.KEY_KP4, ""),
+            "num5":      (self._uinput.KEY_KP5, ""),
+            "num6":      (self._uinput.KEY_KP6, ""),
+            "num7":      (self._uinput.KEY_KP7, ""),
+            "num8":      (self._uinput.KEY_KP8, ""),
+            "num9":      (self._uinput.KEY_KP9, ""),
+            "numlock":   (self._uinput.KEY_NUMLOCK, ""),
+            "subtract":  (self._uinput.KEY_KPMINUS, ""),
 
             # --- Media / system keys ---
-            'nexttrack':    (self._uinput.KEY_NEXTSONG, ""),
-            'pause':        (self._uinput.KEY_PAUSE, ""),
-            'playpause':    (self._uinput.KEY_PLAYPAUSE, ""),
-            'prevtrack':    (self._uinput.KEY_PREVIOUSSONG, ""),
-            'print':        (self._uinput.KEY_PRINT, ""),
-            'printscreen':  (self._uinput.KEY_PRINT, ""),
-            'prntscrn':     (self._uinput.KEY_PRINT, ""),
-            'prtsc':        (self._uinput.KEY_PRINT, ""),
-            'prtscr':       (self._uinput.KEY_PRINT, ""),
-            'scrolllock':   (self._uinput.KEY_SCROLLLOCK, ""),
-            'sleep':        (self._uinput.KEY_SLEEP, ""),
-            'stop':         (self._uinput.KEY_STOP, ""),
-            'volumedown':   (self._uinput.KEY_VOLUMEDOWN, ""),
-            'volumemute':   (self._uinput.KEY_MUTE, ""),
-            'volumeup':     (self._uinput.KEY_VOLUMEUP, ""),
+            "nexttrack":    (self._uinput.KEY_NEXTSONG, ""),
+            "pause":        (self._uinput.KEY_PAUSE, ""),
+            "playpause":    (self._uinput.KEY_PLAYPAUSE, ""),
+            "prevtrack":    (self._uinput.KEY_PREVIOUSSONG, ""),
+            "print":        (self._uinput.KEY_PRINT, ""),
+            "printscreen":  (self._uinput.KEY_PRINT, ""),
+            "prntscrn":     (self._uinput.KEY_PRINT, ""),
+            "prtsc":        (self._uinput.KEY_PRINT, ""),
+            "prtscr":       (self._uinput.KEY_PRINT, ""),
+            "scrolllock":   (self._uinput.KEY_SCROLLLOCK, ""),
+            "sleep":        (self._uinput.KEY_SLEEP, ""),
+            "stop":         (self._uinput.KEY_STOP, ""),
+            "volumedown":   (self._uinput.KEY_VOLUMEDOWN, ""),
+            "volumemute":   (self._uinput.KEY_MUTE, ""),
+            "volumeup":     (self._uinput.KEY_VOLUMEUP, ""),
 
             # --- Browser keys (not implemented) ---
-            # 'browserback'
-            # 'browserfavorites'
-            # 'browserforward'
-            # 'browserhome'
-            # 'browserrefresh'
-            # 'browsersearch'
-            # 'browserstop'
+            # "browserback"
+            # "browserfavorites"
+            # "browserforward"
+            # "browserhome"
+            # "browserrefresh"
+            # "browsersearch"
+            # "browserstop"
 
             # --- Other specials (not implemented or rarely used) ---
-            # 'hanguel'
-            # 'hangeul'
-            # 'hanja'
-            # 'hiragana'
-            # 'kana'
-            # 'yen'
+            # "hanguel"
+            # "hangeul"
+            # "hanja"
+            # "hiragana"
+            # "kana"
+            # "yen"
         })
 
     def teardown_postinit(self, *args: Any, **kwargs: Any) -> None:

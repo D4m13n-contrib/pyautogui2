@@ -1,4 +1,5 @@
 """Controller manager."""
+
 import atexit
 
 from typing import Optional
@@ -24,14 +25,18 @@ class ControllerManager(metaclass=Singleton):
                  screen: Optional[ScreenController] = None,
                  dialogs: Optional[DialogsController] = None) -> None:
 
-        # Call get_osal() only if not all controllers are given
-        _osal = None if all([pointer, keyboard, screen, dialogs]) else get_osal()
-
-        # Create each controller
-        self._pointer: PointerController = pointer or PointerController(osal = _osal.pointer)        # type: ignore[union-attr]
-        self._keyboard: KeyboardController = keyboard or KeyboardController(osal = _osal.keyboard)   # type: ignore[union-attr]
-        self._screen: ScreenController = screen or ScreenController(osal = _osal.screen)             # type: ignore[union-attr]
-        self._dialogs: DialogsController = dialogs or DialogsController(osal = _osal.dialogs)        # type: ignore[union-attr]
+        # Branch explicitly so mypy understands _osal is never None when accessed
+        if pointer and keyboard and screen and dialogs:
+            self._pointer = pointer
+            self._keyboard = keyboard
+            self._screen = screen
+            self._dialogs = dialogs
+        else:
+            _osal = get_osal()
+            self._pointer = pointer or PointerController(osal=_osal.pointer)
+            self._keyboard = keyboard or KeyboardController(osal=_osal.keyboard)
+            self._screen = screen or ScreenController(osal=_osal.screen)
+            self._dialogs = dialogs or DialogsController(osal=_osal.dialogs)
 
         setup_context = {
             "controller_manager": self,

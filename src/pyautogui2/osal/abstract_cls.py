@@ -20,6 +20,7 @@ Note:
     These are abstract classes. Do not instantiate them directly.
     Use the appropriate platform-specific implementations instead.
 """
+
 import functools
 
 from abc import ABC, abstractmethod
@@ -30,7 +31,7 @@ from typing import TYPE_CHECKING, Any, Optional, Union
 
 from ..utils.abstract_cls import AbstractOSAL
 from ..utils.decorators import DEFAULTS as DECORATORS_TO_REMOVE
-from ..utils.exceptions import PyAutoGUIException
+from ..utils.exceptions import ImageNotFoundException, PyAutoGUIException
 from ..utils.types import Box, ButtonName, Point, Size
 
 
@@ -178,11 +179,14 @@ class AbstractPointer(AbstractOSAL):
             This decorator maintains an internal counter (_button_pressed) to
             handle nested press/release calls correctly.
         """
+
         @functools.wraps(wrapped_function)
         def wrapper(self: AbstractPointer, button: ButtonName, **kwargs: Any) -> None:
             if button not in self.BUTTON_NAME_MAPPING:
-                raise PyAutoGUIException(f"Error: '{button}' ({type(button)}) "
-                                        f"is not supported ({list(self.BUTTON_NAME_MAPPING.keys())})")
+                raise PyAutoGUIException(
+                    f"Error: '{button}' ({type(button)}) "
+                    f"is not supported ({list(self.BUTTON_NAME_MAPPING.keys())})"
+                )
 
             if wrapped_function.__name__ == "button_down":
                 exec_func = self._button_pressed.get(button, 0) == 0
@@ -190,13 +194,15 @@ class AbstractPointer(AbstractOSAL):
             elif wrapped_function.__name__ == "button_up":
                 count = self._button_pressed.get(button, 0) - 1
                 exec_func = count <= 0
-            else:       # pragma: no cover
-                raise PyAutoGUIException(f"Error: the function '{wrapped_function.__name__}' "
-                                        "should be a 'button_down' or a 'button_up' function")
+            else:  # pragma: no cover
+                raise PyAutoGUIException(
+                    f"Error: the function '{wrapped_function.__name__}' "
+                    "should be a 'button_down' or a 'button_up' function"
+                )
 
             self._button_pressed[button] = count if count > 0 else 0
             if exec_func:
-                return wrapped_function(self, button, **kwargs)     # type: ignore[no-any-return]
+                return wrapped_function(self, button, **kwargs)  # type: ignore[no-any-return]
 
         return wrapper
 
@@ -389,6 +395,37 @@ class AbstractKeyboard(AbstractOSAL):
             codepoint entry mechanism.
         """
         pass
+
+
+def _wrap_pyscreeze(wrapped_function):
+    """A decorator that wraps PyScreeze's methods.
+
+    Wraps:
+      - PyAutoGUI argument name (snake_case) into PyScreeze argument name (camelCase).
+      - PyScreeze's ImageNotFoundException into PyAutoGUI's ImageNotFoundException.
+    """
+    arg_names_case = {
+        "needle_image": "needleImage",
+        "haystack_image": "haystackImage",
+        "min_search_time": "minSearchTime",
+        "image_path": "imageFilename",
+        "expected_color": "expectedRGBColor",
+    }
+
+    @functools.wraps(wrapped_function)
+    def wrapper(self, *args, **kwargs):
+        for arg_name, pyscreeze_arg_name in arg_names_case.items():
+            if arg_name in kwargs:
+                kwargs[pyscreeze_arg_name] = kwargs[arg_name]
+                del kwargs[arg_name]
+
+        pyscreeze = self._pyscreeze
+        try:
+            return wrapped_function(self, *args, **kwargs)
+        except pyscreeze.ImageNotFoundException as e:
+            raise ImageNotFoundException() from e
+
+    return wrapper
 
 
 class AbstractScreen(AbstractOSAL):
