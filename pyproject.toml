@@ -7,7 +7,7 @@ name = "pyautogui2"
 version = "1.0.0"
 description = "Modern cross-platform GUI automation library - Complete rewrite of PyAutoGUI"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 license = "BSD-3-Clause"
 authors = [
     {name = "Damien A", email = "yyyymmdd.contributor@free.fr"},
@@ -67,7 +67,6 @@ dev = [
     "pytest-cov>=4.0",
     "pytest-mock>=3.10",
     "pytest-retry>=1.7",
-    "black>=23.0",
     "isort>=5.12",
     "ruff>=0.1.0",
     "mypy>=1.0",
@@ -145,24 +144,6 @@ exclude_lines = [
     "if TYPE_CHECKING:",
     "@abstractmethod",
 ]
-
-# === BLACK ===
-[tool.black]
-line-length = 100
-target-version = ['py38', 'py39', 'py310', 'py311', 'py312']
-include = '\.pyi?$'
-extend-exclude = '''
-/(
-  \.eggs
-  | \.git
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | build
-  | dist
-)/
-'''
 
 # === ISORT ===
 [tool.isort]
