@@ -78,6 +78,8 @@ pag.keyboard.hotkey("ctrl", "s")
 
 Contributions are welcome. Please read the [contributing guide](docs/support/contributing.md) before opening a pull request.
 
+> This project was originally designed and prototyped with the assistance of AI chatbots (ChatGPT and Claude Sonnet), though all development and contributions were carried out manually by human developers.
+
 ```bash
 git clone https://github.com/D4m13n-contrib/pyautogui2.git
 cd pyautogui2
