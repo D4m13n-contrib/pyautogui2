@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=68.0", "wheel"]
+requires = ["setuptools>=70.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -38,8 +38,6 @@ classifiers = [
     "Operating System :: OS Independent",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -49,7 +47,7 @@ classifiers = [
 ]
 dependencies = [
     "pyscreeze>=0.1.30",
-    "pillow>=12.1.1",
+    "pillow>=12.2.0",
     "pymsgbox>=1.0.9",
     "pytweening>=1.2.0",
     "pygetwindow>=0.0.5",
@@ -73,6 +71,8 @@ dev = [
     "build>=1.0",
     "twine>=4.0",
     "graphviz>=0.21",
+    "pre-commit>=4.2",
+    "pip-audit>=2.10.1",
 ]
 
 [project.urls]
@@ -204,7 +204,7 @@ convention = "google"
 "tests/**/*.py" = [
     "S101",  # assert allowed in tests
     "D100",  # Module docstring
-    "D101",  # Class docstring  
+    "D101",  # Class docstring
     "D102",  # Method docstring
     "D103",  # Function docstring
     "D104",  # Package docstring
@@ -258,4 +258,3 @@ ignore_errors = true
 [[tool.mypy.overrides]]
 module = "pyautogui2.osal.windows.*"
 disable_error_code = ["attr-defined"]
-

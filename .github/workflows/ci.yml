@@ -68,6 +68,9 @@ jobs:
       - name: Mypy
         run: mypy src/
 
+      - name: Security audit
+        run: pip-audit --format=json --desc
+
       - name: Coverage
         run: pytest --cov=src/pyautogui2 --cov-branch --cov-report=xml --cov-fail-under=100 -m 'not real'
 
