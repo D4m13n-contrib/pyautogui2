@@ -11,7 +11,14 @@ from ...utils.exceptions import PyAutoGUIException
 from ...utils.lazy_import import lazy_import, lazy_load_object
 from ...utils.types import ButtonName, Point
 from ..abstract_cls import AbstractPointer
-from ._common import INPUT, MOUSEINPUT, ensure_dpi_aware, is_legacy_windows, send_input
+from ._common import (
+    INPUT,
+    MOUSEINPUT,
+    _load_system_dll,
+    ensure_dpi_aware,
+    is_legacy_windows,
+    send_input,
+)
 
 
 class WindowsPointer(AbstractPointer):
@@ -26,8 +33,8 @@ class WindowsPointer(AbstractPointer):
         - Handles DPI scaling through process-level DPI awareness.
     """
 
-    _user32 = lazy_load_object("user32", lambda: ctypes.WinDLL("user32", use_last_error=True))
-    _kernel32 = lazy_load_object("kernel32", lambda: ctypes.WinDLL("kernel32", use_last_error=True))
+    _user32 = lazy_load_object("user32", lambda: _load_system_dll("user32"))
+    _kernel32 = lazy_load_object("kernel32", lambda: _load_system_dll("kernel32"))
 
     # --- Constants ---
     INPUT_MOUSE = 0

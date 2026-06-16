@@ -1,9 +1,11 @@
 import contextlib
 import ctypes
 import logging
+import os
 import sys
 
 from ctypes import wintypes
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 
@@ -82,6 +84,14 @@ class MONITORINFO(ctypes.Structure):
         ("rcWork", RECT),
         ("dwFlags", wintypes.DWORD),
     ]
+
+
+
+def _load_system_dll(dll_name: str):
+    """Load a system DLL from System32 with absolute path to prevent DLL hijacking."""
+    system32 = Path(os.environ.get("SYSTEMROOT", "C:\\Windows")) / "System32"
+    dll_path = system32 / (dll_name if dll_name.endswith(".dll") else f"{dll_name}.dll")
+    return ctypes.WinDLL(str(dll_path), use_last_error=True)
 
 
 # --- Utilities ---

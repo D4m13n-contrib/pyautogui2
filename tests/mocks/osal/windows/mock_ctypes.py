@@ -1,4 +1,6 @@
 """Mock ctypes structures and types for Windows testing."""
+from pathlib import Path
+
 
 # ============================================================================
 # Mock C types
@@ -358,9 +360,7 @@ def WinDLL(name, *_args, **_kwargs):
         Mock DLL object from sys.modules
     """
     import sys
-
-    # Normalize name (user32.dll -> user32)
-    dll_name = name.lower().replace('.dll', '')
+    dll_name = Path(name).stem.lower()
 
     # Return from sys.modules if available
     if dll_name in sys.modules:

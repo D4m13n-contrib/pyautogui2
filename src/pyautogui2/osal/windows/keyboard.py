@@ -1,6 +1,5 @@
 """WindowsKeyboard."""
 
-import ctypes
 import logging
 import time
 
@@ -12,7 +11,14 @@ from ...utils.exceptions import PyAutoGUIException
 from ...utils.keyboard_layouts import KEYBOARD_LAYOUTS
 from ...utils.lazy_import import lazy_import, lazy_load_object
 from ..abstract_cls import AbstractKeyboard
-from ._common import INPUT, KEYBDINPUT, get_last_error, is_legacy_windows, send_input
+from ._common import (
+    INPUT,
+    KEYBDINPUT,
+    _load_system_dll,
+    get_last_error,
+    is_legacy_windows,
+    send_input,
+)
 
 
 ScanCode = int  # Windows scancode constants are int
@@ -29,8 +35,8 @@ class WindowsKeyboard(AbstractKeyboard):
         - Falls back to legacy methods (keybd_event) when needed.
     """
 
-    _user32 = lazy_load_object("user32", lambda: ctypes.WinDLL("user32", use_last_error=True))
-    _kernel32 = lazy_load_object("kernel32", lambda: ctypes.WinDLL("kernel32", use_last_error=True))
+    _user32 = lazy_load_object("user32", lambda: _load_system_dll("user32"))
+    _kernel32 = lazy_load_object("kernel32", lambda: _load_system_dll("kernel32"))
     _winreg = lazy_import("winreg")
 
     # --- comprehensive Windows keys scancode (from winuser.h) ---

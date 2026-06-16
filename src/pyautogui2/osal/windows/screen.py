@@ -7,7 +7,7 @@ from ctypes import wintypes
 from ...utils.lazy_import import lazy_import, lazy_load_object
 from ...utils.types import Size
 from ..abstract_cls import AbstractScreen, _wrap_pyscreeze
-from ._common import MONITORINFO, RECT, ensure_dpi_aware, get_last_error
+from ._common import MONITORINFO, RECT, _load_system_dll, ensure_dpi_aware, get_last_error
 
 
 class WindowsScreen(AbstractScreen):
@@ -16,8 +16,8 @@ class WindowsScreen(AbstractScreen):
     _pyscreeze = lazy_import("pyscreeze")
     _pygetwindow = lazy_import("pygetwindow")
 
-    _user32 = lazy_load_object("user32", lambda: ctypes.WinDLL("user32", use_last_error=True))
-    _kernel32 = lazy_load_object("kernel32", lambda: ctypes.WinDLL("kernel32", use_last_error=True))
+    _user32 = lazy_load_object("user32", lambda: _load_system_dll("user32"))
+    _kernel32 = lazy_load_object("kernel32", lambda: _load_system_dll("kernel32"))
 
     def setup_postinit(self, *args, **kwargs) -> None:
         """Implementation Notes:

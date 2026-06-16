@@ -102,3 +102,37 @@ class TestGetLastError:
         with patch("pyautogui2.osal.windows._common.ctypes") as mock_ct:
             del mock_ct.get_last_error
             assert get_last_error(kernel32) == 0
+
+
+class TestLoadSystemDll:
+
+    def test_loads_from_system32_with_dll_extension(self, isolated_windows):
+        from pyautogui2.osal.windows._common import _load_system_dll
+
+        with patch("pyautogui2.osal.windows._common.ctypes.WinDLL") as mock_windll:
+            result = _load_system_dll("user32.dll")
+        mock_windll.assert_called_once()
+        args, _ = mock_windll.call_args
+        assert "System32" in args[0]
+        assert args[0].endswith("user32.dll")
+        assert result == mock_windll.return_value
+
+    def test_adds_dll_extension_when_missing(self, isolated_windows):
+        from pyautogui2.osal.windows._common import _load_system_dll
+
+        with patch("pyautogui2.osal.windows._common.ctypes.WinDLL") as mock_windll:
+            _load_system_dll("kernel32")
+        args, _ = mock_windll.call_args
+        assert args[0].endswith("kernel32.dll")
+
+    def test_uses_systemroot_env_var(self, isolated_windows):
+        from pyautogui2.osal.windows._common import _load_system_dll
+
+        with (
+            patch("pyautogui2.osal.windows._common.ctypes.WinDLL") as mock_windll,
+            patch("pyautogui2.osal.windows._common.os.environ.get", return_value="D:\\Custom"),
+        ):
+            _load_system_dll("user32")
+        args, _ = mock_windll.call_args
+        assert "D:\\Custom" in args[0]
+        assert "System32" in args[0]
