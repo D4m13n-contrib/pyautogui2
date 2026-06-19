@@ -78,6 +78,7 @@ digraph {
 				subgraph cluster_15 {
 					color="#CCCCCC" fillcolor="#F8F9F9" fontname=Helvetica fontsize=9 label="gnome_shell_real.py" style="rounded,filled"
 					gnome_shell_backend_real [label=gnome_shell_backend_real color="#E67E22" fillcolor="#FAD7A0" penwidth=1 style=filled]
+					linux_ds_wayland_backend_real [label=linux_ds_wayland_backend_real color="#E67E22" fillcolor="#FAD7A0" penwidth=1 style=filled]
 				}
 			}
 			subgraph cluster_16 {
@@ -112,7 +113,6 @@ digraph {
 				subgraph cluster_21 {
 					color="#CCCCCC" fillcolor="#F8F9F9" fontname=Helvetica fontsize=9 label="wayland.py" style="rounded,filled"
 					isolated_linux_wayland [label=isolated_linux_wayland color="#E67E22" fillcolor="#FAD7A0" penwidth=1 style=filled]
-					linux_ds_wayland_backend_real [label=linux_ds_wayland_backend_real color="#E67E22" fillcolor="#FAD7A0" penwidth=1 style=filled]
 					linux_ds_wayland_dialogs [label="-- linux_ds_wayland_dialogs --" color="#E74C3C" fillcolor="#FAD7A0" penwidth=2 style="filled,bold"]
 					linux_ds_wayland_keyboard [label=linux_ds_wayland_keyboard color="#E67E22" fillcolor="#FAD7A0" penwidth=1 style=filled]
 					linux_ds_wayland_pointer [label=linux_ds_wayland_pointer color="#E67E22" fillcolor="#FAD7A0" penwidth=1 style=filled]
@@ -225,7 +225,6 @@ digraph {
 	isolated_lib_pygetwindow -> linux_de_xfce_screen [color="#7F8C8D99"]
 	isolated_linux -> linux_dialogs [color="#E67E2299"]
 	isolated_lib_pymsgbox -> linux_dialogs [color="#7F8C8D99"]
-	isolated_linux_wayland -> linux_ds_wayland_backend_real [color="#E67E2299"]
 	isolated_gnome_shell -> linux_ds_wayland_co_gnome_shell_dialogs [color="#E67E2299"]
 	isolated_lib_pymsgbox -> linux_ds_wayland_co_gnome_shell_dialogs [color="#7F8C8D99"]
 	isolated_gnome_shell -> linux_ds_wayland_co_gnome_shell_keyboard [color="#E67E2299"]

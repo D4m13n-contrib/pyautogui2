@@ -1,4 +1,5 @@
 """Gnome Shell D-Bus Backend."""
+
 import atexit
 import contextlib
 import logging
@@ -31,7 +32,7 @@ class GnomeShellBackend(metaclass=Singleton):
     Implementation Notes:
         - Singleton pattern ensures single D-Bus connection across all components.
         - Lazy initialization of D-Bus proxy on first access.
-        - Uses pydbus library for D-Bus communication (lazy imported).
+        - Uses Gio (PyGObject) for D-Bus communication (lazy imported).
         - Raises RuntimeError with helpful message if extension is not available.
 
     Attributes:
@@ -45,7 +46,8 @@ class GnomeShellBackend(metaclass=Singleton):
     BUS_NAME = "org.pyautogui.Wayland"
     OBJECT_PATH = "/org/pyautogui/Wayland"
 
-    _pydbus = lazy_import("pydbus")
+    _Gio = lazy_import("gi.repository.Gio")
+    _GLib = lazy_import("gi.repository.GLib")
 
     def __init__(self):
         """Initialize the backend without establishing D-Bus connection.
@@ -66,35 +68,67 @@ class GnomeShellBackend(metaclass=Singleton):
     def _bus(self):
         """Get or create D-Bus session connection."""
         if self._bus_handle is None:
-            self._bus_handle = self._pydbus.SessionBus()
+            self._bus_handle = self._Gio.bus_get_sync(self._Gio.BusType.SESSION, None)
         return self._bus_handle
+
+    def _get_dbus_proxy(self, bus, bus_name, object_path, interface_name=None):
+        """Create a Gio.DBusProxy for the given bus name and object path.
+
+        Args:
+            bus: Gio.DBusConnection instance.
+            bus_name: D-Bus service name.
+            object_path: D-Bus object path.
+            interface_name: D-Bus interface name (defaults to bus_name).
+
+        Returns:
+            Gio.DBusProxy: A new proxy instance.
+        """
+        if interface_name is None:
+            interface_name = bus_name
+        return self._Gio.DBusProxy.new_sync(
+            bus,
+            self._Gio.DBusProxyFlags.NONE,
+            None,
+            bus_name,
+            object_path,
+            interface_name,
+            None,
+        )
 
     def cleanup(self):
         """Release D-Bus name on exit."""
         if self._bus_handle is not None and self._uuid is not None:
             try:
-                dbus_proxy = self._bus_handle.get("org.freedesktop.DBus", "/org/freedesktop/DBus")
-                dbus_proxy.ReleaseName(self._uuid)
+                dbus_proxy = self._get_dbus_proxy(
+                    self._bus,
+                    "org.freedesktop.DBus",
+                    "/org/freedesktop/DBus",
+                    "org.freedesktop.DBus",
+                )
+                params = self._GLib.Variant.new_tuple(
+                    self._GLib.Variant.new_string(self._uuid),
+                )
+                dbus_proxy.call_sync("ReleaseName", params, self._Gio.DBusCallFlags.NONE, -1, None)
             except Exception as e:
                 logging.error(f"ReleaseName failed: {e}")
 
         if self._name_owner is not None:
             with contextlib.suppress(Exception):
-                self._name_owner.unown()
+                # ReleaseName already handled above (no unown() in Gio)
+                pass
             self._name_owner = None
 
-        if self._bus_handle is not None:
-            with contextlib.suppress(Exception):
-                self._bus_handle.close()
-            self._bus_handle = None
-
+        # NOTE: Do NOT close _bus_handle. Gio.bus_get_sync() returns a shared
+        # Gio.DBusConnection that can outlive this backend. Closing it would
+        # break other callers in the same process using the session bus.
+        # Just drop our reference instead.
+        self._bus_handle = None
         # Force property to recreate on next access
         if hasattr(self, "_proxy"):
             delattr(self, "_proxy")
 
         self._proxy = None
         self._uuid = None
-
 
     def _load_auth_token(self) -> str:
         """Load authentication token from Gnome Shell extension.
@@ -106,8 +140,11 @@ class GnomeShellBackend(metaclass=Singleton):
             RuntimeError: If the token file is not found or if there is an error reading the file.
         """
         try:
-            proxy = self._bus.get(self.BUS_NAME, object_path=self.OBJECT_PATH)
-            token_path = proxy.GetAuthTokenPath()
+            proxy = self._get_dbus_proxy(self._bus, self.BUS_NAME, self.OBJECT_PATH, self.BUS_NAME)
+            result = proxy.call_sync(
+                "GetAuthTokenPath", None, self._Gio.DBusCallFlags.NONE, -1, None
+            )
+            token_path = result.unpack()[0]
             if not token_path:
                 raise RuntimeError("Extension not installed")
 
@@ -126,8 +163,7 @@ class GnomeShellBackend(metaclass=Singleton):
             ) from e
         except PermissionError as e:
             raise RuntimeError(
-                f"Cannot read token file: {token_path}. "
-                "Check file permissions."
+                f"Cannot read token file: {token_path}. Check file permissions."
             ) from e
         except Exception as e:
             raise RuntimeError("Failed to load auth token") from e
@@ -138,11 +174,31 @@ class GnomeShellBackend(metaclass=Singleton):
         Returns:
             True if registration is stale (process doesn't exist anymore)
         """
-        try:
-            dbus_proxy = self._bus.get("org.freedesktop.DBus", "/org/freedesktop/DBus")
+        if self._uuid is None:
+            return False
 
-            owner_id = dbus_proxy.GetNameOwner(self._uuid)
-            pid = dbus_proxy.GetConnectionUnixProcessID(owner_id)
+        try:
+            dbus_proxy = self._get_dbus_proxy(
+                self._bus, "org.freedesktop.DBus", "/org/freedesktop/DBus", "org.freedesktop.DBus"
+            )
+
+            result = dbus_proxy.call_sync(
+                "GetNameOwner",
+                self._GLib.Variant.new_tuple(self._GLib.Variant.new_string(self._uuid)),
+                self._Gio.DBusCallFlags.NONE,
+                -1,
+                None,
+            )
+            owner_id = result.unpack()[0]
+
+            result = dbus_proxy.call_sync(
+                "GetConnectionUnixProcessID",
+                self._GLib.Variant.new_tuple(self._GLib.Variant.new_string(owner_id)),
+                self._Gio.DBusCallFlags.NONE,
+                -1,
+                None,
+            )
+            pid = result.unpack()[0]
 
             try:
                 os.kill(pid, 0)  # Signal 0 just checks if process exists
@@ -150,8 +206,11 @@ class GnomeShellBackend(metaclass=Singleton):
             except (ProcessLookupError, PermissionError):
                 return True  # Process doesn't exist, it's stale
 
-        except Exception:
-            # If we can't determine, assume it's not stale (safe default)
+        except self._GLib.GError as e:
+            logging.debug("D-Bus error checking stale registration: %s", e)
+            return False
+        except TypeError as e:
+            logging.debug("Invalid argument checking stale registration: %s", e)
             return False
 
     def _force_release_via_dbus(self) -> bool:
@@ -160,12 +219,31 @@ class GnomeShellBackend(metaclass=Singleton):
         Returns:
             True if release succeeded
         """
+        if self._uuid is None:
+            return False
+
         try:
-            dbus_proxy = self._bus.get("org.freedesktop.DBus", "/org/freedesktop/DBus")
+            dbus_proxy = self._get_dbus_proxy(
+                self._bus, "org.freedesktop.DBus", "/org/freedesktop/DBus", "org.freedesktop.DBus"
+            )
 
             with contextlib.suppress(Exception):
-                owner_id = dbus_proxy.GetNameOwner(self._uuid)
-                pid = dbus_proxy.GetConnectionUnixProcessID(owner_id)
+                result = dbus_proxy.call_sync(
+                    "GetNameOwner",
+                    self._GLib.Variant.new_tuple(self._GLib.Variant.new_string(self._uuid)),
+                    self._Gio.DBusCallFlags.NONE,
+                    -1,
+                    None,
+                )
+                owner_id = result.unpack()[0]
+                result = dbus_proxy.call_sync(
+                    "GetConnectionUnixProcessID",
+                    self._GLib.Variant.new_tuple(self._GLib.Variant.new_string(owner_id)),
+                    self._Gio.DBusCallFlags.NONE,
+                    -1,
+                    None,
+                )
+                pid = result.unpack()[0]
 
                 with contextlib.suppress(ProcessLookupError, PermissionError):
                     os.kill(pid, signal.SIGTERM)
@@ -174,12 +252,22 @@ class GnomeShellBackend(metaclass=Singleton):
             time.sleep(0.2)
 
             try:
-                dbus_proxy.GetNameOwner(self._uuid)
+                dbus_proxy.call_sync(
+                    "GetNameOwner",
+                    self._GLib.Variant.new_tuple(self._GLib.Variant.new_string(self._uuid)),
+                    self._Gio.DBusCallFlags.NONE,
+                    -1,
+                    None,
+                )
                 return False
             except Exception:
                 return True
 
-        except Exception:
+        except self._GLib.GError as e:
+            logging.debug("D-Bus error force releasing bus name: %s", e)
+            return False
+        except TypeError as e:
+            logging.debug("Invalid argument force releasing bus name: %s", e)
             return False
 
     def _create_proxy(self) -> Any:
@@ -200,14 +288,35 @@ class GnomeShellBackend(metaclass=Singleton):
 
             if self._name_owner is None:
                 try:
-                    self._name_owner = self._bus.request_name(self._uuid)
+                    dbus_daemon = self._get_dbus_proxy(
+                        self._bus,
+                        "org.freedesktop.DBus",
+                        "/org/freedesktop/DBus",
+                        "org.freedesktop.DBus",
+                    )
+                    params = self._GLib.Variant.new_tuple(
+                        self._GLib.Variant.new_string(self._uuid),
+                        self._GLib.Variant.new_uint32(0),
+                    )
+                    result = dbus_daemon.call_sync(
+                        "RequestName", params, self._Gio.DBusCallFlags.NONE, -1, None
+                    )
+                    reply_code = result.unpack()[0]
+                    # DBUS_REQUEST_NAME_REPLY_EXISTS = 3
+                    if reply_code == 3:
+                        raise RuntimeError("name already exists")
+                    self._name_owner = True
                 except RuntimeError as e:
                     # If we're already the owner, that's fine
                     if "already the owner" in str(e):
                         pass
                     else:
                         raise RuntimeError("Request name failed") from e
-                self._proxy = self._bus.get(self.BUS_NAME, object_path=self.OBJECT_PATH)
+
+            if self._proxy is None:
+                self._proxy = self._get_dbus_proxy(
+                    self._bus, self.BUS_NAME, self.OBJECT_PATH, self.BUS_NAME
+                )
 
             return self._proxy
 
@@ -265,8 +374,11 @@ class GnomeShellBackend(metaclass=Singleton):
             >>> backend.get_keyboard_layout()
             'us'
         """
-        result: str = self.proxy.GetKeyboardLayout()
-        return result
+        result = self.proxy.call_sync(
+            "GetKeyboardLayout", None, self._Gio.DBusCallFlags.NONE, -1, None
+        )
+        typed_result: str = result.unpack()[0]
+        return typed_result
 
     def get_pointer_position(self) -> tuple[int, int]:
         """Retrieve the current pointer (mouse cursor) position from GNOME Shell.
@@ -289,8 +401,10 @@ class GnomeShellBackend(metaclass=Singleton):
             >>> backend.get_pointer_position()
             (1523, 847)
         """
-        result: tuple[int, int] = self.proxy.GetPosition()
-        return result
+        result = self.proxy.call_sync("GetPosition", None, self._Gio.DBusCallFlags.NONE, -1, None)
+        # GetPosition returns (ii) → unpack() gives (x, y) directly
+        typed_result: tuple[int, int] = result.unpack()
+        return typed_result
 
     def get_screen_outputs(self) -> str:
         """Retrieve all monitor output configurations from GNOME Shell.
@@ -318,5 +432,6 @@ class GnomeShellBackend(metaclass=Singleton):
             '[{"x":0,"y":0,"width":1920,"height":1080},
               {"x":1920,"y":0,"width":1920,"height":1080}]'
         """
-        result: str = self.proxy.GetOutputs()
-        return result
+        result = self.proxy.call_sync("GetOutputs", None, self._Gio.DBusCallFlags.NONE, -1, None)
+        typed_result: str = result.unpack()[0]
+        return typed_result

@@ -1,6 +1,4 @@
 """Real integration tests for GnomeShell extension communication."""
-from unittest.mock import MagicMock, patch
-
 import pytest
 
 from tests.fixtures.helpers import is_linux_wayland_compositor_gnome_shell
@@ -8,6 +6,15 @@ from tests.fixtures.helpers import is_linux_wayland_compositor_gnome_shell
 
 if not is_linux_wayland_compositor_gnome_shell():
     pytest.skip("Requires platform with GnomeShell compositor", allow_module_level=True)
+
+# ruff: noqa: E402
+gi = pytest.importorskip("gi", reason="PyGObject (gi) is not installed")
+gi.require_version("Gio", "2.0")
+gi.require_version("GLib", "2.0")
+
+from unittest.mock import MagicMock, patch
+
+from gi.repository import Gio, GLib
 
 
 class TestGnomeShellExtensionBasics:
@@ -33,10 +40,8 @@ class TestGnomeShellExtensionBasics:
 
         # Should be a valid proxy object
         assert proxy is not None
-        assert hasattr(proxy, "GetKeyboardLayout")
-        assert hasattr(proxy, "GetPosition")
-        assert hasattr(proxy, "GetOutputs")
-        assert hasattr(proxy, "GetAuthTokenPath")
+        assert isinstance(proxy, Gio.DBusProxy)
+        assert proxy.get_name() == "org.pyautogui.Wayland"
 
     def test_proxy_is_cached(self, gnome_shell_backend_real):
         """Verify that proxy is cached and reused."""
@@ -53,9 +58,9 @@ class TestGnomeShellExtensionBasics:
         proxy = gnome_shell_backend_real.proxy
 
         # Call each method
-        layout = proxy.GetKeyboardLayout()
-        position = proxy.GetPosition()
-        outputs = proxy.GetOutputs()
+        layout = proxy.call_sync("GetKeyboardLayout", None, Gio.DBusCallFlags.NONE, -1, None).unpack()[0]
+        position = proxy.call_sync("GetPosition", None, Gio.DBusCallFlags.NONE, -1, None).unpack()
+        outputs = proxy.call_sync("GetOutputs", None, Gio.DBusCallFlags.NONE, -1, None).unpack()[0]
 
         # Basic type checks
         assert isinstance(layout, str)
@@ -85,10 +90,12 @@ class TestBusNameRegistration:
         _ = gnome_shell_backend_real.proxy
 
         # Check bus name format via D-Bus
-        import pydbus
-        bus = pydbus.SessionBus()
-        dbus_proxy = bus.get("org.freedesktop.DBus", "/org/freedesktop/DBus")
-        names = dbus_proxy.ListNames()
+        bus = Gio.bus_get_sync(Gio.BusType.SESSION, None)
+        dbus_proxy = Gio.DBusProxy.new_sync(
+            bus, Gio.DBusProxyFlags.NONE, None,
+            "org.freedesktop.DBus", "/org/freedesktop/DBus", "org.freedesktop.DBus"
+        )
+        names = dbus_proxy.call_sync("ListNames", None, Gio.DBusCallFlags.NONE, -1, None).unpack()[0]
 
         # Find our bus name
         pyautogui_names = [name for name in names if name.startswith("pyautogui.")]
@@ -108,10 +115,12 @@ class TestBusNameRegistration:
         _ = gnome_shell_backend_real.proxy
 
         # Get bus name
-        import pydbus
-        bus = pydbus.SessionBus()
-        dbus_proxy = bus.get("org.freedesktop.DBus", "/org/freedesktop/DBus")
-        names_before = dbus_proxy.ListNames()
+        bus = Gio.bus_get_sync(Gio.BusType.SESSION, None)
+        dbus_proxy = Gio.DBusProxy.new_sync(
+            bus, Gio.DBusProxyFlags.NONE, None,
+            "org.freedesktop.DBus", "/org/freedesktop/DBus", "org.freedesktop.DBus"
+        )
+        names_before = dbus_proxy.call_sync("ListNames", None, Gio.DBusCallFlags.NONE, -1, None).unpack()[0]
         pyautogui_names_before = [
             name for name in names_before if name.startswith("pyautogui.")
         ]
@@ -122,7 +131,7 @@ class TestBusNameRegistration:
         gnome_shell_backend_real.cleanup()
 
         # Bus name should be released
-        names_after = dbus_proxy.ListNames()
+        names_after = dbus_proxy.call_sync("ListNames", None, Gio.DBusCallFlags.NONE, -1, None).unpack()[0]
         assert bus_name not in names_after, \
             f"Bus name {bus_name} still registered after cleanup!"
 
@@ -149,18 +158,16 @@ class TestTokenLoading:
         assert proxy is not None
 
         # Verify we can call methods (which require authentication)
-        layout = proxy.GetKeyboardLayout()
+        layout = proxy.call_sync("GetKeyboardLayout", None, Gio.DBusCallFlags.NONE, -1, None).unpack()[0]
         assert isinstance(layout, str)
 
     def test_load_auth_token_without_token_path_raise(self, gnome_shell_backend_real):
         """Verify _load_auth_token() raises RuntimeError when token_path not found."""
-        mock_bus = MagicMock()
         mock_proxy = MagicMock()
-
-        mock_proxy.GetAuthTokenPath = MagicMock(return_value=None)
-
-        mock_bus.get = MagicMock(return_value=mock_proxy)
-        gnome_shell_backend_real._bus_handle = mock_bus
+        mock_result = MagicMock()
+        mock_result.unpack.return_value = (None,)
+        mock_proxy.call_sync = MagicMock(return_value=mock_result)
+        gnome_shell_backend_real._get_dbus_proxy = MagicMock(return_value=mock_proxy)
 
         with pytest.raises(RuntimeError, match="Failed to load auth token") as exc_info:
             gnome_shell_backend_real._load_auth_token()
@@ -171,13 +178,11 @@ class TestTokenLoading:
 
     def test_load_auth_token_file_not_found_raise(self, gnome_shell_backend_real):
         """Verify _load_auth_token() raises RuntimeError when token file not found."""
-        mock_bus = MagicMock()
         mock_proxy = MagicMock()
-
-        mock_proxy.GetAuthTokenPath = MagicMock(return_value="unexist")
-
-        mock_bus.get = MagicMock(return_value=mock_proxy)
-        gnome_shell_backend_real._bus_handle = mock_bus
+        mock_result = MagicMock()
+        mock_result.unpack.return_value = ("unexist",)
+        mock_proxy.call_sync = MagicMock(return_value=mock_result)
+        gnome_shell_backend_real._get_dbus_proxy = MagicMock(return_value=mock_proxy)
 
         with pytest.raises(RuntimeError, match="Token file not found") as exc_info:
             gnome_shell_backend_real._load_auth_token()
@@ -187,16 +192,14 @@ class TestTokenLoading:
 
     def test_load_auth_token_bad_permission_file_raise(self, gnome_shell_backend_real, tmp_path):
         """Verify _load_auth_token() raises RuntimeError when token file has bad permissions."""
-        mock_bus = MagicMock()
         mock_proxy = MagicMock()
-
         fake_file_path = tmp_path / "fake_file"
         fake_file_path.write_text("content", encoding="utf-8")
         fake_file_path.chmod(0o333)
-        mock_proxy.GetAuthTokenPath = MagicMock(return_value=str(fake_file_path))
-
-        mock_bus.get = MagicMock(return_value=mock_proxy)
-        gnome_shell_backend_real._bus_handle = mock_bus
+        mock_result = MagicMock()
+        mock_result.unpack.return_value = (str(fake_file_path),)
+        mock_proxy.call_sync = MagicMock(return_value=mock_result)
+        gnome_shell_backend_real._get_dbus_proxy = MagicMock(return_value=mock_proxy)
 
         with pytest.raises(RuntimeError, match="Cannot read token file") as exc_info:
             gnome_shell_backend_real._load_auth_token()
@@ -206,15 +209,13 @@ class TestTokenLoading:
 
     def test_load_auth_token_with_empty_token_raise(self, gnome_shell_backend_real, tmp_path):
         """Verify _load_auth_token() raises RuntimeError when token file is empty."""
-        mock_bus = MagicMock()
         mock_proxy = MagicMock()
-
         fake_file_path = tmp_path / "fake_file"
         fake_file_path.write_text("", encoding="utf-8")
-        mock_proxy.GetAuthTokenPath = MagicMock(return_value=str(fake_file_path))
-
-        mock_bus.get = MagicMock(return_value=mock_proxy)
-        gnome_shell_backend_real._bus_handle = mock_bus
+        mock_result = MagicMock()
+        mock_result.unpack.return_value = (str(fake_file_path),)
+        mock_proxy.call_sync = MagicMock(return_value=mock_result)
+        gnome_shell_backend_real._get_dbus_proxy = MagicMock(return_value=mock_proxy)
 
         with pytest.raises(RuntimeError, match="Failed to load auth token") as exc_info:
             gnome_shell_backend_real._load_auth_token()
@@ -229,48 +230,43 @@ class TestStaleRegistration:
 
     def test_is_stale_registration_cannot_determine(self, gnome_shell_backend_real):
         """Verify _is_stale_registration() catch Exception cannot determine bus state."""
-        mock_bus = MagicMock()
         mock_proxy = MagicMock()
-
-        mock_proxy.GetNameOwner = MagicMock(side_effect=Exception("Error"))
-
-        mock_bus.get = MagicMock(return_value=mock_proxy)
-        gnome_shell_backend_real._bus_handle = mock_bus
-
-        with patch("os.kill", return_value=True) as mock_kill:
+        mock_proxy.call_sync = MagicMock(side_effect=Exception("Error"))
+        with patch.object(gnome_shell_backend_real, '_get_dbus_proxy', return_value=mock_proxy), \
+             patch("os.kill", return_value=True) as mock_kill:
             res = gnome_shell_backend_real._is_stale_registration()
             mock_kill.assert_not_called()
             assert res is False
 
     def test_is_stale_registration_process_exist(self, gnome_shell_backend_real):
         """Verify _is_stale_registration() when process exists (not stale)."""
-        mock_bus = MagicMock()
         mock_proxy = MagicMock()
-
-        mock_proxy.GetNameOwner = MagicMock(return_value="ID")
-        mock_proxy.GetConnectionUnixProcessID = MagicMock(return_value=1234)
-
-        mock_bus.get = MagicMock(return_value=mock_proxy)
-        gnome_shell_backend_real._bus_handle = mock_bus
-
-        with patch("os.kill", return_value=True) as mock_kill:
+        result_id = MagicMock()
+        result_id.unpack.return_value = ("ID",)
+        result_pid = MagicMock()
+        result_pid.unpack.return_value = (1234,)
+        mock_proxy.call_sync = MagicMock(side_effect=[result_id, result_pid])
+        gnome_shell_backend_real._uuid = "UUID"
+        with patch.object(gnome_shell_backend_real, '_get_dbus_proxy', return_value=mock_proxy), \
+             patch("os.kill", return_value=True) as mock_kill:
             res = gnome_shell_backend_real._is_stale_registration()
             mock_kill.assert_called_once_with(1234, 0)
             assert res is False
 
     def test_is_stale_registration_kill_catch_exceptions(self, gnome_shell_backend_real):
         """Verify _is_stale_registration() catch os.kill() Exceptions."""
-        mock_bus = MagicMock()
-        mock_proxy = MagicMock()
-
-        mock_proxy.GetNameOwner = MagicMock(return_value="ID")
-        mock_proxy.GetConnectionUnixProcessID = MagicMock(return_value=1234)
-
-        mock_bus.get = MagicMock(return_value=mock_proxy)
-        gnome_shell_backend_real._bus_handle = mock_bus
+        gnome_shell_backend_real._uuid = "UUID"
 
         for exception in [ProcessLookupError, PermissionError]:
-            with patch("os.kill", side_effect=exception("Error")) as mock_kill:
+            mock_proxy = MagicMock()
+            result_id = MagicMock()
+            result_id.unpack.return_value = ("ID",)
+            result_pid = MagicMock()
+            result_pid.unpack.return_value = (1234,)
+            mock_proxy.call_sync = MagicMock(side_effect=[result_id, result_pid])
+
+            with patch.object(gnome_shell_backend_real, '_get_dbus_proxy', return_value=mock_proxy), \
+                 patch("os.kill", side_effect=exception("Error")) as mock_kill:
                 res = gnome_shell_backend_real._is_stale_registration()
                 mock_kill.assert_called_once_with(1234, 0)
                 assert res is True
@@ -281,29 +277,26 @@ class TestForceReleaseViaDBus:
 
     def test_force_release_via_dbus_get_bus_failed(self, gnome_shell_backend_real):
         """Verify _force_release_via_dbus() if get bus failed should return False."""
-        mock_bus = MagicMock()
-
-        mock_bus.get = MagicMock(side_effect=Exception("Error"))
-        gnome_shell_backend_real._bus_handle = mock_bus
-
-        # Should not raise
-        res = gnome_shell_backend_real._force_release_via_dbus()
-        assert res is False
+        with patch.object(gnome_shell_backend_real, '_get_dbus_proxy', side_effect=Exception("Error")):
+            # Should not raise
+            res = gnome_shell_backend_real._force_release_via_dbus()
+            assert res is False
 
     def test_force_release_via_dbus_release_bus_failed(self, gnome_shell_backend_real):
         """Verify _force_release_via_dbus() if release bus failed should return False."""
         import signal
 
-        mock_bus = MagicMock()
         mock_proxy = MagicMock()
-
-        mock_proxy.GetNameOwner = MagicMock(return_value="ID")
-        mock_proxy.GetConnectionUnixProcessID = MagicMock(return_value=1234)
-
-        mock_bus.get = MagicMock(return_value=mock_proxy)
-        gnome_shell_backend_real._bus_handle = mock_bus
-
-        with patch("os.kill", return_value=True) as mock_kill:
+        result_id = MagicMock()
+        result_id.unpack.return_value = ("ID",)
+        result_pid = MagicMock()
+        result_pid.unpack.return_value = (1234,)
+        result_check = MagicMock()  # 3rd call: GetNameOwner still succeeds → name owned
+        result_check.unpack.return_value = ("ID",)
+        mock_proxy.call_sync = MagicMock(side_effect=[result_id, result_pid, result_check])
+        gnome_shell_backend_real._uuid = "UUID"
+        with patch.object(gnome_shell_backend_real, '_get_dbus_proxy', return_value=mock_proxy), \
+             patch("os.kill", return_value=True) as mock_kill:
             # Should not raise
             res = gnome_shell_backend_real._force_release_via_dbus()
 
@@ -314,19 +307,15 @@ class TestForceReleaseViaDBus:
         """Verify _force_release_via_dbus() if bus successful released should return True."""
         import signal
 
-        mock_bus = MagicMock()
         mock_proxy = MagicMock()
-
-        mock_proxy.GetNameOwner = MagicMock(side_effect=[
-            "ID",
-            Exception("Not owned"),
-        ])
-        mock_proxy.GetConnectionUnixProcessID = MagicMock(return_value=1234)
-
-        mock_bus.get = MagicMock(return_value=mock_proxy)
-        gnome_shell_backend_real._bus_handle = mock_bus
-
-        with patch("os.kill", return_value=True) as mock_kill:
+        result_id = MagicMock()
+        result_id.unpack.return_value = ("ID",)
+        result_pid = MagicMock()
+        result_pid.unpack.return_value = (1234,)
+        mock_proxy.call_sync = MagicMock(side_effect=[result_id, result_pid, Exception("Not owned")])
+        gnome_shell_backend_real._uuid = "UUID"
+        with patch.object(gnome_shell_backend_real, '_get_dbus_proxy', return_value=mock_proxy), \
+             patch("os.kill", return_value=True) as mock_kill:
             # Should not raise
             res = gnome_shell_backend_real._force_release_via_dbus()
 
@@ -341,29 +330,27 @@ class TestCreateProxy:
         """Verify _create_proxy() already owned should not raise."""
         gnome_shell_backend_real._proxy = None
         gnome_shell_backend_real._uuid = "UUID"
-        gnome_shell_backend_real._name_owner = None
+        gnome_shell_backend_real._name_owner = True  # Already own the name
+        gnome_shell_backend_real._bus_handle = MagicMock()
 
-        mock_bus = MagicMock()
-        mock_bus.get = MagicMock(return_value="Created Proxy")
-        mock_bus.request_name = MagicMock(side_effect=RuntimeError("already the owner"))
+        mock_proxy = MagicMock()
 
-        gnome_shell_backend_real._bus_handle = mock_bus
-
-        res = gnome_shell_backend_real._create_proxy()
-        assert res == "Created Proxy"
+        with patch.object(gnome_shell_backend_real, '_get_dbus_proxy', return_value=mock_proxy):
+            res = gnome_shell_backend_real._create_proxy()
+            assert res is mock_proxy
 
     def test_create_proxy_request_name_raise(self, gnome_shell_backend_real):
         """Verify _create_proxy() raises RuntimeError if request_name failed."""
         gnome_shell_backend_real._proxy = None
         gnome_shell_backend_real._uuid = "UUID"
         gnome_shell_backend_real._name_owner = None
+        gnome_shell_backend_real._bus_handle = MagicMock()
 
-        mock_bus = MagicMock()
-        mock_bus.request_name = MagicMock(side_effect=RuntimeError("Error request_name"))
+        mock_dbus = MagicMock()
+        mock_dbus.call_sync = MagicMock(side_effect=RuntimeError("Error request_name"))
 
-        gnome_shell_backend_real._bus_handle = mock_bus
-
-        with pytest.raises(RuntimeError, match="Could not connect to Wayland Gnome Shell extension via D-Bus") as exc_info:
+        with patch.object(gnome_shell_backend_real, '_get_dbus_proxy', return_value=mock_dbus), \
+                pytest.raises(RuntimeError, match="Could not connect to Wayland Gnome Shell extension via D-Bus") as exc_info:
             gnome_shell_backend_real._create_proxy()
 
         cause = exc_info.value.__cause__
@@ -379,18 +366,17 @@ class TestCreateProxy:
         gnome_shell_backend_real._proxy = None
         gnome_shell_backend_real._uuid = "UUID"
         gnome_shell_backend_real._name_owner = None
-
-        mock_bus = MagicMock()
-
-        gnome_shell_backend_real._bus_handle = mock_bus
+        gnome_shell_backend_real._bus_handle = MagicMock()
 
         for err_msg in ["name already exists", "already in use"]:
-            mock_bus.request_name = MagicMock(side_effect=Exception(err_msg))
+            mock_dbus = MagicMock()
+            mock_dbus.call_sync = MagicMock(side_effect=Exception(err_msg))
 
             gnome_shell_backend_real._is_stale_registration = MagicMock(return_value=False)
             gnome_shell_backend_real._force_release_via_dbus = MagicMock(return_value=False)
 
-            with pytest.raises(RuntimeError, match="Could not release stale bus name"):
+            with patch.object(gnome_shell_backend_real, '_get_dbus_proxy', return_value=mock_dbus), \
+                    pytest.raises(RuntimeError, match="Could not release stale bus name"):
                 gnome_shell_backend_real._create_proxy()
 
     def test_create_proxy_bus_already_exist_recurse(self, gnome_shell_backend_real):
@@ -398,10 +384,7 @@ class TestCreateProxy:
         gnome_shell_backend_real._proxy = None
         gnome_shell_backend_real._uuid = "UUID"
         gnome_shell_backend_real._name_owner = None
-
-        mock_bus = MagicMock()
-
-        gnome_shell_backend_real._bus_handle = mock_bus
+        gnome_shell_backend_real._bus_handle = MagicMock()
 
         original_create_proxy = gnome_shell_backend_real._create_proxy
 
@@ -415,15 +398,17 @@ class TestCreateProxy:
         gnome_shell_backend_real._create_proxy = MagicMock(side_effect=_create_proxy_non_recursive)
 
         for err_msg in ["name already exists", "already in use"]:
-            mock_bus.request_name = MagicMock(side_effect=Exception(err_msg))
+            mock_dbus = MagicMock()
+            mock_dbus.call_sync = MagicMock(side_effect=Exception(err_msg))
 
             gnome_shell_backend_real._is_stale_registration = MagicMock(return_value=True)
             gnome_shell_backend_real._force_release_via_dbus = MagicMock(return_value=True)
 
-            call_count = 0
+            with patch.object(gnome_shell_backend_real, '_get_dbus_proxy', return_value=mock_dbus):
+                call_count = 0
 
-            with pytest.raises(KeyboardInterrupt, match="Test recursive call"):
-                gnome_shell_backend_real._create_proxy()
+                with pytest.raises(KeyboardInterrupt, match="Test recursive call"):
+                    gnome_shell_backend_real._create_proxy()
 
 
 class TestCleanupBehavior:
@@ -460,11 +445,14 @@ class TestCleanupBehavior:
     def test_cleanup_with_invalid_bus_log(self, gnome_shell_backend_real, caplog):
         """Verify cleanup log error during releasing bus."""
         import logging
-        gnome_shell_backend_real._bus_handle = ""
-        gnome_shell_backend_real._uuid = ""
+        gnome_shell_backend_real._uuid = "t" + "a" * 32
+        gnome_shell_backend_real._bus_handle = MagicMock()
+        mock_proxy = MagicMock()
+        mock_proxy.call_sync = MagicMock(side_effect=Exception("ReleaseName failed"))
 
-        # Should not raise
-        gnome_shell_backend_real.cleanup()
+        with patch.object(gnome_shell_backend_real, '_get_dbus_proxy', return_value=mock_proxy):
+            # Should not raise
+            gnome_shell_backend_real.cleanup()
 
         errors = [x.message for x in caplog.get_records("call") if x.levelno == logging.ERROR]
         assert len(errors) == 1
@@ -479,7 +467,8 @@ class TestErrorHandling:
         proxy = gnome_shell_backend_real.proxy
 
         # Try to call a method that doesn't exist
-        with pytest.raises(AttributeError):
+        # Gio.DBusProxy raises GLib.GError (not AttributeError) for unknown methods
+        with pytest.raises((GLib.GError, AttributeError)):
             _ = proxy.NonExistentMethod()
 
     def test_repeated_access_is_safe(self, gnome_shell_backend_real):
