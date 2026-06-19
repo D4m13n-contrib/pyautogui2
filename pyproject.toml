@@ -53,13 +53,18 @@ dependencies = [
     "pygetwindow>=0.0.5",
     "more-itertools>=10.8.0",
     "python-xlib>=0.33; sys_platform=='linux'",
-    "python-uinput>=1.0.1; sys_platform=='linux'",
-    "pydbus>=0.6.0; sys_platform=='linux'",
+    "evdev>=1.7.0; sys_platform=='linux'",
     "pyobjc-core>=2.5.1; sys_platform=='darwin'",
     "pyobjc-framework-Quartz>=2.5.1; sys_platform=='darwin'",
 ]
 
 [project.optional-dependencies]
+# PyGObject is sdist-only and needs system build deps (libgirepository, cairo...),
+# so it must NOT be a hard dependency: on most Linux systems `pip install` would
+# fail. Any GNOME desktop already ships it via the distro package (python3-gi).
+gnome = [
+    "pygobject>=3.56.3; sys_platform=='linux'",
+]
 dev = [
     "pytest>=7.0",
     "pytest-cov>=4.0",
