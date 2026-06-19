@@ -8,8 +8,8 @@ from ..abstract_cls import AbstractScreen, _wrap_pyscreeze
 class MacOSScreen(AbstractScreen):
     """Common MacOS-specific screen logic."""
 
-    _quartz = lazy_import("Quartz")
-    _appkit = lazy_import("AppKit")
+    _quartz = lazy_import("Quartz", pip_name="pyobjc-framework-Quartz")
+    _appkit = lazy_import("AppKit", pip_name="pyobjc-framework-Cocoa")
 
     _pyscreeze = lazy_import("pyscreeze")
     _pygetwindow = lazy_import("pygetwindow")

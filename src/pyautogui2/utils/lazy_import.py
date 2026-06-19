@@ -6,7 +6,7 @@ import contextlib
 import importlib
 
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Any, Generic, TypeVar
+from typing import TYPE_CHECKING, Any, Generic, Optional, TypeVar
 from weakref import WeakSet
 
 from .exceptions import PyAutoGUIException
@@ -18,6 +18,45 @@ if TYPE_CHECKING:
 T = TypeVar("T")
 
 
+def import_module_checked(
+    module_name: str,
+    pip_name: Optional[str] = None,
+    hint: Optional[str] = None,
+) -> ModuleType:
+    """Import a module, raising an actionable error if it is missing.
+
+    This is used directly by call sites that cannot rely on
+    :class:`LazyImportDescriptor` (e.g. factories passed to
+    :func:`lazy_load_object`).
+
+    Args:
+        module_name: The module name passed to ``importlib`` (e.g. 'Xlib.display').
+        pip_name: The PyPI package providing the module, when different from
+            ``module_name`` (e.g. 'python-xlib' for 'Xlib.display'). Defaults
+            to ``None``, falling back to ``module_name``.
+        hint: Optional extra installation guidance shown after the pip command
+            (e.g. a distro package name such as 'sudo apt install python3-gi').
+
+    Returns:
+        The imported module.
+
+    Raises:
+        PyAutoGUIException: If the module cannot be imported, with a message
+            naming the correct pip package and the optional hint.
+    """
+    try:
+        return importlib.import_module(module_name)
+    except ImportError as e:
+        package = pip_name or module_name
+        message = (
+            f"{module_name} is required but not installed. "
+            f"Install it with: pip install {package}"
+        )
+        if hint:
+            message += f". Alternatively: {hint}"
+        raise PyAutoGUIException(message) from e
+
+
 class LazyImportDescriptor:
     """Descriptor for lazy module imports with per-instance caching.
 
@@ -26,17 +65,26 @@ class LazyImportDescriptor:
 
     Example:
         class MyClass:
-            _uinput = lazy_import("uinput")
+            _evdev = lazy_import('evdev')
 
             def some_method(self):
-                # First access imports and caches on self._lazy_uinput
-                device = self._uinput.Device()
+                # First access imports and caches on self._lazy_evdev
+                device = self._evdev.UInput(capabilities)
     """
 
     _instance_registry: WeakSet = WeakSet()
 
-    def __init__(self, module_name: str) -> None:
+    def __init__(
+        self,
+        module_name: str,
+        pip_name: Optional[str] = None,
+        hint: Optional[str] = None,
+    ) -> None:
         self.module_name: str = module_name
+        # PyPI package name when different from the module name (e.g. 'python-xlib' for 'Xlib')
+        self.pip_name: Optional[str] = pip_name
+        # Optional extra installation guidance (e.g. a distro package name)
+        self.hint: Optional[str] = hint
         # Default attr_name (fallback if __set_name__ isn't called)
         self.attr_name: str = f"_lazy_{module_name.replace('.', '_')}"
 
@@ -46,9 +94,9 @@ class LazyImportDescriptor:
         Sets the cache attribute name based on the descriptor's name.
 
         Example:
-            _uinput = lazy_import("uinput")
-            # __set_name__ called with name="_uinput"
-            #     attr_name becomes "_lazy_uinput"
+            _evdev = lazy_import('evdev')
+            # __set_name__ called with name='_evdev'
+            #     attr_name becomes '_lazy_evdev'
         """
         # Remove leading underscores to avoid double-underscore issues
         clean_name = name.lstrip('_')
@@ -82,7 +130,7 @@ class LazyImportDescriptor:
         """Allow manual override of the module (useful for mocking).
 
         Example:
-            obj._uinput = MockUInput  # Sets obj._lazy_uinput = MockUInput
+            obj._evdev = MockEvdev  # Sets obj._lazy_evdev = MockEvdev
         """
         setattr(instance, self.attr_name, value)
 
@@ -90,7 +138,7 @@ class LazyImportDescriptor:
         """Allow deletion of the cached module (primarily for test cleanup).
 
         Example:
-            del obj._uinput  # Deletes obj._lazy_uinput
+            del obj._evdev  # Deletes obj._lazy_evdev
         """
         with contextlib.suppress(AttributeError):
             delattr(instance, self.attr_name)
@@ -104,13 +152,7 @@ class LazyImportDescriptor:
         Raises:
             PyAutoGUIException: If the module cannot be imported
         """
-        try:
-            return importlib.import_module(self.module_name)
-        except ImportError as e:
-            raise PyAutoGUIException(
-                f"{self.module_name} is required but not installed. "
-                f"Install it with: pip install {self.module_name}"
-            ) from e
+        return import_module_checked(self.module_name, self.pip_name, self.hint)
 
 
 class LazyObjectDescriptor(Generic[T]):
@@ -185,24 +227,34 @@ class LazyObjectDescriptor(Generic[T]):
             delattr(instance, self.attr_name)
 
 
-def lazy_import(module_name: str) -> LazyImportDescriptor:
+def lazy_import(
+    module_name: str,
+    pip_name: Optional[str] = None,
+    hint: Optional[str] = None,
+) -> LazyImportDescriptor:
     """Create a lazy import descriptor.
 
     Args:
-        module_name: The name of the module to import (e.g., "uinput")
+        module_name: The name of the module to import (e.g., 'evdev')
+        pip_name: The PyPI package providing the module, when different from
+            ``module_name`` (e.g. 'pygobject' for 'gi.repository.Gio'). Used in
+            the error message when the module is missing. Defaults to ``None``,
+            falling back to ``module_name``.
+        hint: Optional extra installation guidance shown in the error message
+            when the module is missing (e.g. a distro package name).
 
     Returns:
         A descriptor that will lazy-load the module on first access
 
     Example:
         class LinuxKeyboard:
-            _uinput = lazy_import("uinput")
+            _evdev = lazy_import('evdev')
 
             def press_key(self, key):
-                # First access to self._uinput imports the module
-                self._uinput.Device().emit_click(key)
+                # First access to self._evdev imports the module
+                self._evdev.UInput(capabilities)
     """
-    return LazyImportDescriptor(module_name)
+    return LazyImportDescriptor(module_name, pip_name, hint)
 
 
 def lazy_load_object(name: str, factory: Callable[[], T]) -> LazyObjectDescriptor[T]:

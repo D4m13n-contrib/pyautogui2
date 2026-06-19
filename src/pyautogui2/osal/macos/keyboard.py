@@ -26,8 +26,8 @@ class MacOSKeyboard(AbstractKeyboard):
     Uses Quartz to post keyboard events.
     """
 
-    _quartz = lazy_import("Quartz")
-    _launch_services = lazy_import("LaunchServices")
+    _quartz = lazy_import("Quartz", pip_name="pyobjc-framework-Quartz")
+    _launch_services = lazy_import("LaunchServices", pip_name="pyobjc-framework-LaunchServices")
 
     # --- comprehensive MacOS virtual keycodes (kVK_*) ---
     # Source: common mappings from Carbon/HIToolbox headers (stable values).

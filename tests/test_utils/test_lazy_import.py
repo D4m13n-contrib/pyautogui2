@@ -11,6 +11,7 @@ from pyautogui2.utils.exceptions import PyAutoGUIException
 from pyautogui2.utils.lazy_import import (
     LazyImportDescriptor,
     LazyObjectDescriptor,
+    import_module_checked,
     lazy_import,
     lazy_load_object,
 )
@@ -161,6 +162,120 @@ class TestLazyImportErrors:
         # Check that original exception is chained
         assert exc_info.value.__cause__ is not None
         assert isinstance(exc_info.value.__cause__, ImportError)
+
+
+class TestLazyImportInstallGuidance:
+    """Test pip_name and hint parameters for actionable error messages."""
+
+    def test_error_uses_pip_name_when_provided(self):
+        """Error message names the pip package, not the module name."""
+        class TestClass:
+            _fake = lazy_import("nonexistent_module_xyz_12345", pip_name="fake-package")
+
+        obj = TestClass()
+
+        with pytest.raises(PyAutoGUIException) as exc_info:
+            _ = obj._fake
+
+        message = str(exc_info.value)
+        assert "nonexistent_module_xyz_12345" in message
+        assert "pip install fake-package" in message
+        assert "pip install nonexistent_module_xyz_12345" not in message
+
+    def test_error_uses_module_name_by_default(self):
+        """Without pip_name, the module name is used as pip package."""
+        class TestClass:
+            _fake = lazy_import("nonexistent_module_xyz_12345")
+
+        obj = TestClass()
+
+        with pytest.raises(PyAutoGUIException) as exc_info:
+            _ = obj._fake
+
+        assert "pip install nonexistent_module_xyz_12345" in str(exc_info.value)
+
+    def test_hint_appended_when_provided(self):
+        """Hint is appended after the pip command when provided."""
+        class TestClass:
+            _fake = lazy_import(
+                "nonexistent_module_xyz_12345",
+                pip_name="fake-package",
+                hint="sudo apt install fake-package",
+            )
+
+        obj = TestClass()
+
+        with pytest.raises(PyAutoGUIException) as exc_info:
+            _ = obj._fake
+
+        message = str(exc_info.value)
+        assert "pip install fake-package" in message
+        assert "Alternatively: sudo apt install fake-package" in message
+
+    def test_no_hint_suffix_when_hint_absent(self):
+        """No 'Alternatively' suffix appears when no hint is provided."""
+        class TestClass:
+            _fake = lazy_import("nonexistent_module_xyz_12345", pip_name="fake-package")
+
+        obj = TestClass()
+
+        with pytest.raises(PyAutoGUIException) as exc_info:
+            _ = obj._fake
+
+        assert "Alternatively" not in str(exc_info.value)
+
+    def test_success_still_imports_module(self):
+        """pip_name and hint don't affect successful imports."""
+        class TestClass:
+            _json = lazy_import("json", pip_name="does-not-matter", hint="unused")
+
+        obj = TestClass()
+
+        assert obj._json.__name__ == "json"
+
+
+class TestImportModuleChecked:
+    """Test the import_module_checked helper (used by lazy_load_object factories)."""
+
+    def test_success_returns_module(self):
+        """Returns the imported module when available."""
+        module = import_module_checked("json")
+
+        assert module.__name__ == "json"
+        assert hasattr(module, "dumps")
+
+    def test_missing_module_default_message(self):
+        """Missing module raises PyAutoGUIException using the module name."""
+        with pytest.raises(PyAutoGUIException) as exc_info:
+            import_module_checked("nonexistent_module_xyz_12345")
+
+        message = str(exc_info.value)
+        assert "nonexistent_module_xyz_12345" in message
+        assert "pip install nonexistent_module_xyz_12345" in message
+        assert "Alternatively" not in message
+        assert isinstance(exc_info.value.__cause__, ImportError)
+
+    def test_missing_module_with_pip_name(self):
+        """pip_name replaces the module name in the pip command."""
+        with pytest.raises(PyAutoGUIException) as exc_info:
+            import_module_checked("nonexistent_module_xyz_12345", "fake-package")
+
+        message = str(exc_info.value)
+        assert "pip install fake-package" in message
+        assert "pip install nonexistent_module_xyz_12345" not in message
+
+    def test_missing_module_with_pip_name_and_hint(self):
+        """pip_name and hint are both present in the message."""
+        with pytest.raises(PyAutoGUIException) as exc_info:
+            import_module_checked(
+                "nonexistent_module_xyz_12345",
+                "fake-package",
+                "sudo apt install fake-package",
+            )
+
+        message = str(exc_info.value)
+        assert "pip install fake-package" in message
+        assert "Alternatively: sudo apt install fake-package" in message
 
 
 class TestLazyImportDescriptorProtocol:

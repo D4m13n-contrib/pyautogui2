@@ -28,8 +28,8 @@ class X11ScreenPart(AbstractScreen):
     """
 
     _pyscreeze = lazy_import("pyscreeze")
-    _xlib = lazy_import("Xlib")
-    _xlib_display = lazy_import("Xlib.display")
+    _xlib = lazy_import("Xlib", pip_name="python-xlib")
+    _xlib_display = lazy_import("Xlib.display", pip_name="python-xlib")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

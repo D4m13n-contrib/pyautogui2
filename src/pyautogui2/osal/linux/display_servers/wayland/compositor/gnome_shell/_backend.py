@@ -11,6 +11,7 @@ from typing import Any, Optional
 
 from .......utils.lazy_import import lazy_import
 from .......utils.singleton import Singleton
+from ..._common import GI_INSTALL_HINT
 
 
 class GnomeShellBackend(metaclass=Singleton):
@@ -46,8 +47,8 @@ class GnomeShellBackend(metaclass=Singleton):
     BUS_NAME = "org.pyautogui.Wayland"
     OBJECT_PATH = "/org/pyautogui/Wayland"
 
-    _Gio = lazy_import("gi.repository.Gio")
-    _GLib = lazy_import("gi.repository.GLib")
+    _Gio = lazy_import("gi.repository.Gio", pip_name="pygobject", hint=GI_INSTALL_HINT)
+    _GLib = lazy_import("gi.repository.GLib", pip_name="pygobject", hint=GI_INSTALL_HINT)
 
     def __init__(self):
         """Initialize the backend without establishing D-Bus connection.

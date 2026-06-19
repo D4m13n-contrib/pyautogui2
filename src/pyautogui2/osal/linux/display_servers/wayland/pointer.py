@@ -36,7 +36,7 @@ class WaylandPointerPart(AbstractPointer):
     """
 
     _evdev = lazy_import("evdev")
-    _ecodes = lazy_import("evdev.ecodes")
+    _ecodes = lazy_import("evdev.ecodes", pip_name="evdev")
 
     BUTTON_NAME_MAPPING = {
         ButtonName.LEFT: None,  # set in setup_postinit()

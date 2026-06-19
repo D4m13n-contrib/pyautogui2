@@ -43,8 +43,8 @@ class X11KeyboardPart(AbstractKeyboard):
         - X11 display server running.
     """
 
-    _xlib = lazy_import("Xlib")
-    _xlib_XK = lazy_import("Xlib.XK")
+    _xlib = lazy_import("Xlib", pip_name="python-xlib")
+    _xlib_XK = lazy_import("Xlib.XK", pip_name="python-xlib")
 
     def __init__(self, *args, **kwargs):
         """Initialize X11 keyboard without establishing display connection.

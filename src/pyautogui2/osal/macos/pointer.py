@@ -32,8 +32,8 @@ class MacOSPointer(AbstractPointer):
         "release": {},      # set in setup_postinit()
     }
 
-    _quartz = lazy_import("Quartz")
-    _appkit = lazy_import("AppKit")
+    _quartz = lazy_import("Quartz", pip_name="pyobjc-framework-Quartz")
+    _appkit = lazy_import("AppKit", pip_name="pyobjc-framework-Cocoa")
 
     _mouseinfo = lazy_import("mouseinfo")
 

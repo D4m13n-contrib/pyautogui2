@@ -37,7 +37,7 @@ class WaylandKeyboardPart(AbstractKeyboard):
     """
 
     _evdev = lazy_import("evdev")
-    _ecodes = lazy_import("evdev.ecodes")
+    _ecodes = lazy_import("evdev.ecodes", pip_name="evdev")
 
     _device_name = "pyautogui-virtual-keyboard"
 

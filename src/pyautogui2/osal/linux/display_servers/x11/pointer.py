@@ -31,7 +31,7 @@ class X11PointerPart(AbstractPointer):
         - X11 display server running.
     """
 
-    _xlib = lazy_import("Xlib")
+    _xlib = lazy_import("Xlib", pip_name="python-xlib")
 
     BUTTON_NAME_MAPPING = {
         ButtonName.LEFT:      1,

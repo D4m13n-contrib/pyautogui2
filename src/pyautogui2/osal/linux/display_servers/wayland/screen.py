@@ -1,5 +1,4 @@
 """WaylandScreenPart - Display server part for all Linux screens."""
-import importlib
 import threading
 
 from pathlib import Path
@@ -7,8 +6,9 @@ from pathlib import Path
 from PIL import Image
 
 from .....utils.exceptions import PyAutoGUIException
-from .....utils.lazy_import import lazy_load_object
+from .....utils.lazy_import import import_module_checked, lazy_load_object
 from ....abstract_cls import AbstractScreen
+from ._common import GI_INSTALL_HINT
 
 
 class WaylandScreenPart(AbstractScreen):
@@ -21,8 +21,14 @@ class WaylandScreenPart(AbstractScreen):
     _REQUEST_INTERFACE = "org.freedesktop.portal.Request"
     _PORTAL_TIMEOUT_SECONDS = 30
 
-    _Gio = lazy_load_object("Gio", lambda: importlib.import_module("gi.repository").Gio)
-    _GLib = lazy_load_object("GLib", lambda: importlib.import_module("gi.repository").GLib)
+    _Gio = lazy_load_object(
+        "Gio",
+        lambda: import_module_checked("gi.repository", "pygobject", GI_INSTALL_HINT).Gio,
+    )
+    _GLib = lazy_load_object(
+        "GLib",
+        lambda: import_module_checked("gi.repository", "pygobject", GI_INSTALL_HINT).GLib,
+    )
 
     def _take_screenshot(self) -> "Image.Image":
         """Capture a screenshot via the XDG Desktop Portal (Wayland).
