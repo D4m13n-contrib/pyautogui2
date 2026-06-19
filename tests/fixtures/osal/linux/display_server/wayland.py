@@ -1,36 +1,44 @@
 """Fixtures for Wayland Display Server Part tests.
 
-Provides pre-configured OSAL instances with mocked UInput backend.
+Provides pre-configured OSAL instances with mocked evdev backend.
 Compositor variant doesn't matter here since we're testing Wayland DS Part.
 """
 
 import pytest
 
-from pyautogui2.osal.platform_info import get_linux_info
 from tests.fixtures.osal.linux.osal_builder import clean_linux_osal_ctx
 
 
 @pytest.fixture
 def isolated_linux_wayland(isolated_linux):
-    """Mock UInput, DBus."""
+    """Mock evdev, DBus."""
     import sys
 
     original_modules = {
-        "uinput": sys.modules.get("uinput"),
+        "evdev": sys.modules.get("evdev"),
+        "evdev.ecodes": sys.modules.get("evdev.ecodes"),
         "dbus": sys.modules.get("dbus"),
     }
 
-    # Mock UInput
-    from tests.mocks.osal.linux.mock_uinput import MockUInput
-    mock_uinput = MockUInput
-    sys.modules["uinput"] = mock_uinput
+    # Mock evdev
+    from tests.mocks.osal.linux.mock_evdev import MockEcodes, MockEvdev
+
+    mock_evdev = MockEvdev()
+    mock_ecodes = MockEcodes()
+    sys.modules["evdev"] = mock_evdev
+    sys.modules["evdev.ecodes"] = mock_ecodes
 
     # Mock DBus
     from tests.mocks.osal.linux.mock_dbus import MockDBus
+
     mock_dbus = MockDBus()
     sys.modules["dbus"] = mock_dbus
 
-    isolated_linux._mocks |= {"mock_uinput": mock_uinput, "mock_dbus": mock_dbus}
+    isolated_linux._mocks |= {
+        "mock_evdev": mock_evdev,
+        "mock_ecodes": mock_ecodes,
+        "mock_dbus": mock_dbus,
+    }
 
     try:
         yield isolated_linux
@@ -42,7 +50,7 @@ def isolated_linux_wayland(isolated_linux):
 
 @pytest.fixture
 def linux_ds_wayland_pointer(isolated_linux_wayland, isolated_lib_mouseinfo):
-    """LinuxPointer with Wayland Display Server (mocked UInput).
+    """LinuxPointer with Wayland Display Server (mocked evdev).
 
     Returns:
         LinuxPointer: Fully composed pointer with Wayland DS part.
@@ -55,19 +63,23 @@ def linux_ds_wayland_pointer(isolated_linux_wayland, isolated_lib_mouseinfo):
         MockWaylandCompositorPointerPart,
     )
 
-    wayland_with_compositor = _make_wayland_part(WaylandPointerPart, MockWaylandCompositorPointerPart)
+    wayland_with_compositor = _make_wayland_part(
+        WaylandPointerPart, MockWaylandCompositorPointerPart
+    )
     cls_parts = [MockBasePointerPart, MockDEPointerPart, wayland_with_compositor]
     libs = {
         "mouseinfo": isolated_lib_mouseinfo,
     }
 
-    with clean_linux_osal_ctx("pointer", cls_parts, isolated_linux_wayland._mocks | libs) as pointer:
+    with clean_linux_osal_ctx(
+        "pointer", cls_parts, isolated_linux_wayland._mocks | libs
+    ) as pointer:
         yield pointer
 
 
 @pytest.fixture
 def linux_ds_wayland_keyboard(isolated_linux_wayland):
-    """LinuxKeyboard with Wayland Display Server (mocked UInput).
+    """LinuxKeyboard with Wayland Display Server (mocked evdev).
 
     Returns:
         LinuxKeyboard: Fully composed keyboard with Wayland DS part.
@@ -80,7 +92,9 @@ def linux_ds_wayland_keyboard(isolated_linux_wayland):
         MockWaylandCompositorKeyboardPart,
     )
 
-    wayland_with_compositor = _make_wayland_part(WaylandKeyboardPart, MockWaylandCompositorKeyboardPart)
+    wayland_with_compositor = _make_wayland_part(
+        WaylandKeyboardPart, MockWaylandCompositorKeyboardPart
+    )
     cls_parts = [MockBaseKeyboardPart, MockDEKeyboardPart, wayland_with_compositor]
 
     with clean_linux_osal_ctx("keyboard", cls_parts, isolated_linux_wayland._mocks) as keyboard:
@@ -88,8 +102,10 @@ def linux_ds_wayland_keyboard(isolated_linux_wayland):
 
 
 @pytest.fixture
-def linux_ds_wayland_screen(isolated_linux_wayland, isolated_lib_pyscreeze, isolated_lib_pygetwindow, isolated_lib_gi):
-    """LinuxScreen with Wayland Display Server (mocked UInput).
+def linux_ds_wayland_screen(
+    isolated_linux_wayland, isolated_lib_pyscreeze, isolated_lib_pygetwindow, isolated_lib_gi
+):
+    """LinuxScreen with Wayland Display Server (mocked evdev).
 
     Returns:
         LinuxScreen: Fully composed screen with Wayland DS part.
@@ -116,7 +132,7 @@ def linux_ds_wayland_screen(isolated_linux_wayland, isolated_lib_pyscreeze, isol
 
 @pytest.fixture
 def linux_ds_wayland_dialogs(isolated_linux_wayland, isolated_lib_pymsgbox):
-    """LinuxDialogs with Wayland Display Server (mocked UInput).
+    """LinuxDialogs with Wayland Display Server (mocked evdev).
 
     Returns:
         LinuxDialogs: Fully composed dialogs with Wayland DS part.
@@ -129,52 +145,15 @@ def linux_ds_wayland_dialogs(isolated_linux_wayland, isolated_lib_pymsgbox):
         MockWaylandCompositorDialogsPart,
     )
 
-    wayland_with_compositor = _make_wayland_part(WaylandDialogsPart, MockWaylandCompositorDialogsPart)
+    wayland_with_compositor = _make_wayland_part(
+        WaylandDialogsPart, MockWaylandCompositorDialogsPart
+    )
     cls_parts = [MockBaseDialogsPart, MockDEDialogsPart, wayland_with_compositor]
     libs = {
         "pymsgbox": isolated_lib_pymsgbox,
     }
 
-    with clean_linux_osal_ctx("dialogs", cls_parts, isolated_linux_wayland._mocks | libs) as dialogs:
+    with clean_linux_osal_ctx(
+        "dialogs", cls_parts, isolated_linux_wayland._mocks | libs
+    ) as dialogs:
         yield dialogs
-
-
-@pytest.fixture
-def linux_ds_wayland_backend_real(isolated_linux_wayland):
-    """Current Wayland backend (auto-detected based on compositor).
-
-    Automatically detects the running compositor and delegates to the
-    appropriate specific fixture (gnome_shell_backend, etc.).
-
-    Returns:
-        Backend instance for the detected compositor.
-
-    Raises:
-        pytest.skip: If no backend is implemented for the detected compositor.
-    """
-    compositor = get_linux_info().get("linux_compositor", "unknown")
-
-    if compositor == "gnome_shell":
-        from pyautogui2.osal.linux.display_servers.wayland.compositor.gnome_shell._backend import (
-            GnomeShellBackend as BackendCls,
-        )
-    else:
-        pytest.skip(f"No backend implemented for compositor: {compositor}")
-
-    backend = BackendCls()
-
-    try:
-        yield backend
-    finally:
-        if hasattr(backend, "cleanup"):
-            backend.cleanup()
-
-
-__all__ = [
-    "isolated_linux_wayland",
-    "linux_ds_wayland_pointer",
-    "linux_ds_wayland_keyboard",
-    "linux_ds_wayland_screen",
-    "linux_ds_wayland_dialogs",
-    "linux_ds_wayland_backend_real",
-]

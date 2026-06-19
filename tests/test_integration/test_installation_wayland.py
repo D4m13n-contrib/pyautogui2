@@ -16,25 +16,33 @@ if not is_linux_ds_wayland():
 class TestWaylandInstallation:
     """Tests specific to Wayland display server."""
 
-    def test_uinput_installed(self):
-        """Test that python-uinput is installed."""
+    def test_evdev_installed(self):
+        """Test that python-evdev is installed."""
         try:
-            import uinput
-            assert uinput is not None
+            from evdev import ecodes
+
+            assert ecodes is not None
         except ImportError:
-            pytest.fail("python-uinput is not installed (required for Wayland)")
+            pytest.fail("python-evdev is not installed (required for Wayland)")
 
     def test_uinput_device_access(self):
         """Test that /dev/uinput is accessible."""
         import os
-        assert os.path.exists('/dev/uinput'), "/dev/uinput device not found"
-        assert os.access('/dev/uinput', os.W_OK), "No write permission to /dev/uinput (check udev rules and user groups)"
+
+        assert os.path.exists("/dev/uinput"), "/dev/uinput device not found"
+        assert os.access("/dev/uinput", os.W_OK), (
+            "No write permission to /dev/uinput (check udev rules and user groups)"
+        )
 
     def test_uinput_module_loaded(self):
         """Test that uinput kernel module is loaded."""
-        modinfo_result = subprocess.run(['modinfo', 'uinput'], capture_output=True)
-        modprobe_result = subprocess.run(['modprobe', '-n', '--first-time', 'uinput'], capture_output=True)
-        assert modinfo_result.returncode == 0 and modprobe_result.returncode != 0, "uinput kernel module not loaded (run: sudo modprobe -i uinput)"
+        modinfo_result = subprocess.run(["modinfo", "uinput"], capture_output=True)
+        modprobe_result = subprocess.run(
+            ["modprobe", "-n", "--first-time", "uinput"], capture_output=True
+        )
+        assert modinfo_result.returncode == 0 and modprobe_result.returncode != 0, (
+            "uinput kernel module not loaded (run: sudo modprobe -i uinput)"
+        )
 
     def test_user_in_uinput_group(self):
         """Test that current user is in uinput group."""
@@ -42,15 +50,17 @@ class TestWaylandInstallation:
         import os
 
         try:
-            uinput_gid = grp.getgrnam('uinput').gr_gid
+            uinput_gid = grp.getgrnam("uinput").gr_gid
             user_groups = os.getgroups()
-            assert uinput_gid in user_groups, "User not in 'uinput' group (run: sudo usermod -a -G uinput $USER, then logout/login)"
+            assert uinput_gid in user_groups, (
+                "User not in 'uinput' group (run: sudo usermod -a -G uinput $USER, then logout/login)"
+            )
         except KeyError:
             pytest.skip("uinput group doesn't exist (might not be required on this system)")
 
     @pytest.mark.real
     def test_mouse_move(self, pyautogui_real):
-        """Test mouse movement (real system action - validates UInput)."""
+        """Test mouse movement (real system action - validates evdev)."""
         import time
 
         # Force stable position before test

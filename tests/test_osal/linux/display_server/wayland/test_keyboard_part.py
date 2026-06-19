@@ -1,13 +1,13 @@
 """Tests for Wayland Display Server Keyboard Part.
 
 Tests the Wayland-specific implementation of keyboard control:
-    - Key press/release via UInput
+    - Key press/release via evdev
     - Linux keycode mapping
     - Layout detection (backend fallback for base Part)
     - Error handling for device access failures
 
 Fixtures:
-    - linux_ds_wayland_keyboard: WaylandKeyboardPart with mocked UInput
+    - linux_ds_wayland_keyboard: WaylandKeyboardPart with mocked evdev
 """
 
 from unittest.mock import call
@@ -48,7 +48,9 @@ class TestWaylandKeyboardPartTeardown:
             MockWaylandCompositorKeyboardPart,
         )
 
-        wayland_with_compositor = _make_wayland_part(WaylandKeyboardPart, MockWaylandCompositorKeyboardPart)
+        wayland_with_compositor = _make_wayland_part(
+            WaylandKeyboardPart, MockWaylandCompositorKeyboardPart
+        )
         cls_parts = [MockBaseKeyboardPart, MockDEKeyboardPart, wayland_with_compositor]
         osal_cls = _compose_linux_class("keyboard", *cls_parts)
         osal = osal_cls()
@@ -56,32 +58,38 @@ class TestWaylandKeyboardPartTeardown:
         # _device is None at this point, setup_postinit() was never called
         assert osal._device is None
 
-        # Must not raise, must not call destroy()
+        # Must not raise, must not call close()
         osal.teardown_postinit()
 
         assert osal._device is None
 
 
 class TestWaylandKeyboardPartKeySimulation:
-    """Tests for key press/release simulation via UInput."""
+    """Tests for key press/release simulation via evdev."""
 
     def test_key_down_writes_to_uinput(self, linux_ds_wayland_keyboard):
         """key_down() writes KEY_* event event with value 1 (press)."""
         linux_ds_wayland_keyboard.key_down("a")
 
         keycode, _ = linux_ds_wayland_keyboard._char_map.get("a", (None, None))
-        linux_ds_wayland_keyboard._device.emit.assert_has_calls([
-            call(keycode, 1),
-        ])
+        linux_ds_wayland_keyboard._device.write.assert_has_calls(
+            [
+                call(linux_ds_wayland_keyboard._ecodes.EV_KEY, keycode, 1),
+            ]
+        )
+        linux_ds_wayland_keyboard._device.syn.assert_called_once()
 
     def test_key_up_writes_release_event(self, linux_ds_wayland_keyboard):
         """key_up() writes KEY_* event with value 0 (release)."""
         linux_ds_wayland_keyboard.key_up("b")
 
         keycode, _ = linux_ds_wayland_keyboard._char_map.get("b", (None, None))
-        linux_ds_wayland_keyboard._device.emit.assert_has_calls([
-            call(keycode, 0),
-        ])
+        linux_ds_wayland_keyboard._device.write.assert_has_calls(
+            [
+                call(linux_ds_wayland_keyboard._ecodes.EV_KEY, keycode, 0),
+            ]
+        )
+        linux_ds_wayland_keyboard._device.syn.assert_called_once()
 
     def test_key_down_then_up_sequence(self, linux_ds_wayland_keyboard):
         """Pressing and releasing a key sends correct event sequence."""
@@ -89,37 +97,49 @@ class TestWaylandKeyboardPartKeySimulation:
         linux_ds_wayland_keyboard.key_up("space")
 
         keycode, _ = linux_ds_wayland_keyboard._char_map.get("space", (None, None))
-        linux_ds_wayland_keyboard._device.emit.assert_has_calls([
-            call(keycode, 1),
-            call(keycode, 0),
-        ])
+        linux_ds_wayland_keyboard._device.write.assert_has_calls(
+            [
+                call(linux_ds_wayland_keyboard._ecodes.EV_KEY, keycode, 1),
+                call(linux_ds_wayland_keyboard._ecodes.EV_KEY, keycode, 0),
+            ]
+        )
+        assert linux_ds_wayland_keyboard._device.syn.call_count == 2
 
     def test_modifier_key_ctrl(self, linux_ds_wayland_keyboard):
         """Modifier keys (ctrl, shift, alt) work correctly."""
         linux_ds_wayland_keyboard.key_down("ctrl")
 
         keycode, _ = linux_ds_wayland_keyboard._char_map.get("ctrl", (None, None))
-        linux_ds_wayland_keyboard._device.emit.assert_has_calls([
-            call(keycode, 1),
-        ])
+        linux_ds_wayland_keyboard._device.write.assert_has_calls(
+            [
+                call(linux_ds_wayland_keyboard._ecodes.EV_KEY, keycode, 1),
+            ]
+        )
+        linux_ds_wayland_keyboard._device.syn.assert_called_once()
 
     def test_special_key_return(self, linux_ds_wayland_keyboard):
         """Special keys (Return, Escape, Tab) work correctly."""
         linux_ds_wayland_keyboard.key_down("return")
 
         keycode, _ = linux_ds_wayland_keyboard._char_map.get("return", (None, None))
-        linux_ds_wayland_keyboard._device.emit.assert_has_calls([
-            call(keycode, 1),
-        ])
+        linux_ds_wayland_keyboard._device.write.assert_has_calls(
+            [
+                call(linux_ds_wayland_keyboard._ecodes.EV_KEY, keycode, 1),
+            ]
+        )
+        linux_ds_wayland_keyboard._device.syn.assert_called_once()
 
     def test_function_key_f1(self, linux_ds_wayland_keyboard):
         """Function keys (F1-F12) work correctly."""
         linux_ds_wayland_keyboard.key_down("f1")
 
         keycode, _ = linux_ds_wayland_keyboard._char_map.get("f1", (None, None))
-        linux_ds_wayland_keyboard._device.emit.assert_has_calls([
-            call(keycode, 1),
-        ])
+        linux_ds_wayland_keyboard._device.write.assert_has_calls(
+            [
+                call(linux_ds_wayland_keyboard._ecodes.EV_KEY, keycode, 1),
+            ]
+        )
+        linux_ds_wayland_keyboard._device.syn.assert_called_once()
 
     def test_multiple_keys_independently(self, linux_ds_wayland_keyboard):
         """Multiple key presses are handled independently."""
@@ -130,11 +150,14 @@ class TestWaylandKeyboardPartKeySimulation:
         keycode_a, _ = linux_ds_wayland_keyboard._char_map.get("a", (None, None))
         keycode_b, _ = linux_ds_wayland_keyboard._char_map.get("b", (None, None))
         keycode_c, _ = linux_ds_wayland_keyboard._char_map.get("c", (None, None))
-        linux_ds_wayland_keyboard._device.emit.assert_has_calls([
-            call(keycode_a, 1),
-            call(keycode_b, 1),
-            call(keycode_c, 1),
-        ])
+        linux_ds_wayland_keyboard._device.write.assert_has_calls(
+            [
+                call(linux_ds_wayland_keyboard._ecodes.EV_KEY, keycode_a, 1),
+                call(linux_ds_wayland_keyboard._ecodes.EV_KEY, keycode_b, 1),
+                call(linux_ds_wayland_keyboard._ecodes.EV_KEY, keycode_c, 1),
+            ]
+        )
+        assert linux_ds_wayland_keyboard._device.syn.call_count == 3
 
     def test_capital_letter(self, linux_ds_wayland_keyboard):
         """Capital letter use a SHIFT modifier with letter."""
@@ -142,11 +165,14 @@ class TestWaylandKeyboardPartKeySimulation:
 
         keycode, modifier = linux_ds_wayland_keyboard._char_map.get("A", (None, None))
         keycode_m, _ = linux_ds_wayland_keyboard._char_map.get(modifier, (None, None))
-        linux_ds_wayland_keyboard._device.emit.assert_has_calls([
-            call(keycode_m, 1),
-            call(keycode, 1),
-            call(keycode_m, 0),
-        ])
+        linux_ds_wayland_keyboard._device.write.assert_has_calls(
+            [
+                call(linux_ds_wayland_keyboard._ecodes.EV_KEY, keycode_m, 1),
+                call(linux_ds_wayland_keyboard._ecodes.EV_KEY, keycode, 1),
+                call(linux_ds_wayland_keyboard._ecodes.EV_KEY, keycode_m, 0),
+            ]
+        )
+        linux_ds_wayland_keyboard._device.syn.assert_called_once()
 
 
 class TestWaylandKeyboardPartKeyMapping:
@@ -167,20 +193,25 @@ class TestWaylandKeyboardPartKeyMapping:
         special_keys = ["return", "enter", "escape", "tab", "space"]
 
         for key in special_keys:
-            assert linux_ds_wayland_keyboard.key_is_mapped(key) is True, \
-                f"{key} should be mapped"
+            assert linux_ds_wayland_keyboard.key_is_mapped(key) is True, f"{key} should be mapped"
 
     def test_modifier_keys_are_mapped(self, linux_ds_wayland_keyboard):
         """Modifier keys are mapped correctly."""
         modifiers = [
-            "shift", "shiftleft", "shiftright",
-            "ctrl", "ctrlleft", "ctrlright",
-            "alt", "altleft", "altright", "altgr",
+            "shift",
+            "shiftleft",
+            "shiftright",
+            "ctrl",
+            "ctrlleft",
+            "ctrlright",
+            "alt",
+            "altleft",
+            "altright",
+            "altgr",
         ]
 
         for mod in modifiers:
-            assert linux_ds_wayland_keyboard.key_is_mapped(mod) is True, \
-                f"{mod} should be mapped"
+            assert linux_ds_wayland_keyboard.key_is_mapped(mod) is True, f"{mod} should be mapped"
 
     def test_function_keys_are_mapped(self, linux_ds_wayland_keyboard):
         """Function keys F1-F12 are mapped."""
@@ -206,12 +237,17 @@ class TestWaylandKeyboardPartKeyMapping:
         for arrow in arrows:
             assert linux_ds_wayland_keyboard.key_is_mapped(arrow) is True
 
-    @pytest.mark.parametrize("layout, expected_decimal_key", [
-        ("QWERTY", "KEY_KPDOT"),
-        ("AZERTY", "KEY_KPCOMMA"),
-        ("QWERTZ", "KEY_KPCOMMA"),
-    ])
-    def test_decimal_key_depends_layout(self, layout, expected_decimal_key, linux_ds_wayland_keyboard):
+    @pytest.mark.parametrize(
+        "layout, expected_decimal_key",
+        [
+            ("QWERTY", "KEY_KPDOT"),
+            ("AZERTY", "KEY_KPCOMMA"),
+            ("QWERTZ", "KEY_KPCOMMA"),
+        ],
+    )
+    def test_decimal_key_depends_layout(
+        self, layout, expected_decimal_key, linux_ds_wayland_keyboard
+    ):
         """The decimal key depends on keyboard layout."""
         from pyautogui2.controllers.keyboard import KeyboardController as KC
 
@@ -222,7 +258,9 @@ class TestWaylandKeyboardPartKeyMapping:
         }
         linux_ds_wayland_keyboard.setup_postinit(**setup_kwargs)
 
-        assert linux_ds_wayland_keyboard._char_map["decimal"][0] == getattr(linux_ds_wayland_keyboard._uinput, expected_decimal_key)
+        assert linux_ds_wayland_keyboard._char_map["decimal"][0] == getattr(
+            linux_ds_wayland_keyboard._ecodes, expected_decimal_key
+        )
 
 
 class TestWaylandKeyboardPartErrors:
@@ -242,9 +280,9 @@ class TestWaylandKeyboardPartErrors:
             linux_ds_wayland_keyboard.key_down("a")
 
     def test_uinput_write_failure_handled(self, linux_ds_wayland_keyboard):
-        """UInput write failures are handled gracefully."""
+        """Evdev write failures are handled gracefully."""
         # Mock write to raise error
-        linux_ds_wayland_keyboard._device.emit.side_effect = OSError("Device write failed")
+        linux_ds_wayland_keyboard._device.write.side_effect = OSError("Device write failed")
 
         with pytest.raises(OSError):
             linux_ds_wayland_keyboard.key_down("a")
@@ -264,15 +302,17 @@ class TestWaylandKeyboardPartIntegration:
     def test_typing_sequence_hello(self, linux_ds_wayland_keyboard):
         """Simulate typing 'hello' character by character."""
         calls = []
+        ec = linux_ds_wayland_keyboard._ecodes
         for char in "hello":
             linux_ds_wayland_keyboard.key_down(char)
             linux_ds_wayland_keyboard.key_up(char)
 
             keycode, _ = linux_ds_wayland_keyboard._char_map.get(char, (None, None))
-            calls.append(call(keycode, 1))
-            calls.append(call(keycode, 0))
+            calls.append(call(ec.EV_KEY, keycode, 1))
+            calls.append(call(ec.EV_KEY, keycode, 0))
 
-        linux_ds_wayland_keyboard._device.emit.assert_has_calls(calls)
+        linux_ds_wayland_keyboard._device.write.assert_has_calls(calls)
+        assert linux_ds_wayland_keyboard._device.syn.call_count == 10
 
     def test_modifier_combination_ctrl_c(self, linux_ds_wayland_keyboard):
         """Simulate Ctrl+C key combination."""
@@ -286,35 +326,42 @@ class TestWaylandKeyboardPartIntegration:
 
         keycode_ctrl, _ = linux_ds_wayland_keyboard._char_map.get("ctrl", (None, None))
         keycode_c, _ = linux_ds_wayland_keyboard._char_map.get("c", (None, None))
-        linux_ds_wayland_keyboard._device.emit.assert_has_calls([
-            call(keycode_ctrl, 1),
-            call(keycode_c, 1),
-            call(keycode_c, 0),
-            call(keycode_ctrl, 0),
-        ])
+        ec = linux_ds_wayland_keyboard._ecodes
+        linux_ds_wayland_keyboard._device.write.assert_has_calls(
+            [
+                call(ec.EV_KEY, keycode_ctrl, 1),
+                call(ec.EV_KEY, keycode_c, 1),
+                call(ec.EV_KEY, keycode_c, 0),
+                call(ec.EV_KEY, keycode_ctrl, 0),
+            ]
+        )
+        assert linux_ds_wayland_keyboard._device.syn.call_count == 4
 
     def test_rapid_key_presses(self, linux_ds_wayland_keyboard):
         """Rapid key presses don't interfere with each other."""
         # Simulate rapid typing
         calls = []
+        ec = linux_ds_wayland_keyboard._ecodes
         keycode, _ = linux_ds_wayland_keyboard._char_map.get("a", (None, None))
 
         for _ in range(10):
             linux_ds_wayland_keyboard.key_down("a")
             linux_ds_wayland_keyboard.key_up("a")
-            calls.append(call(keycode, 1))
-            calls.append(call(keycode, 0))
+            calls.append(call(ec.EV_KEY, keycode, 1))
+            calls.append(call(ec.EV_KEY, keycode, 0))
 
         # Should have written events for each press/release
-        linux_ds_wayland_keyboard._device.emit.assert_has_calls(calls)
+        linux_ds_wayland_keyboard._device.write.assert_has_calls(calls)
+        assert linux_ds_wayland_keyboard._device.syn.call_count == 20
 
     def test_all_letters_mappable(self, linux_ds_wayland_keyboard):
         """All letters a-z should be mappable."""
         import string
 
         for char in string.ascii_lowercase:
-            assert linux_ds_wayland_keyboard.key_is_mapped(char) is True, \
+            assert linux_ds_wayland_keyboard.key_is_mapped(char) is True, (
                 f"Letter '{char}' should be mapped"
+            )
 
     def test_device_persistence_across_calls(self, linux_ds_wayland_keyboard):
         """Device handle persists across multiple key operations."""
