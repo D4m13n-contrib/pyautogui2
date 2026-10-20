@@ -1,6 +1,7 @@
 """Core public API entrypoint for PyAutoGUI.
 """
 
+from . import settings
 from .controllers import ControllerManager
 from .utils.decorators.failsafe import FailsafeManager
 from .utils.decorators.pause import PauseManager
@@ -73,3 +74,32 @@ class PyAutoGUI(ControllerManager):
     def PAUSE(self, value: float) -> None:
         PauseManager().controller_duration = value
 
+    @property
+    def ENSURE_POSITION(self) -> bool:
+        """Enable/disable re-asserting and verifying the pointer position.
+
+        When enabled (default), pointer actions re-position the cursor right
+        before executing and verify the move succeeded, raising
+        PyAutoGUIException otherwise. When disabled, the cursor is not pulled
+        back between clicks and a failed move no longer raises.
+
+        Examples:
+            >>> pag = PyAutoGUI()
+            >>> pag.ENSURE_POSITION = False  # Let the user keep control of the mouse
+            >>> pag.ENSURE_POSITION = True   # Restore the default safety behavior
+
+            >>> # Per-call override
+            >>> pag.pointer.click(100, 200, ensure_position=False)
+
+        Note:
+            Reads and writes the global `settings.ENSURE_POSITION` value, so
+            changes take effect immediately.
+
+        See Also:
+            - Settings Guide for `ENSURE_POSITION`
+        """
+        return settings.ENSURE_POSITION
+
+    @ENSURE_POSITION.setter
+    def ENSURE_POSITION(self, value: bool) -> None:
+        settings.ENSURE_POSITION = value

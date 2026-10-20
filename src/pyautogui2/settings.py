@@ -31,6 +31,18 @@ FAILSAFE: bool = True
 
 
 # ============================================================================
+# Pointer Settings (Defaults)
+# ============================================================================
+
+# If True, pointer actions re-assert the target position right before executing
+# it and verify the move succeeded (raises PyAutoGUIException otherwise). Set to
+# False to stop the cursor being pulled back and to avoid hard failures when the
+# user moves the mouse concurrently. Can also be overridden per call via the
+# `ensure_position` argument of pointer methods.
+ENSURE_POSITION: bool = True
+
+
+# ============================================================================
 # Other Settings
 # ============================================================================
 

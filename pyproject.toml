@@ -252,9 +252,5 @@ exclude = [
 ]
 
 [[tool.mypy.overrides]]
-module = "pyautogui2._version"
-ignore_errors = true
-
-[[tool.mypy.overrides]]
 module = "pyautogui2.osal.windows.*"
 disable_error_code = ["attr-defined"]

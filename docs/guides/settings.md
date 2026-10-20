@@ -120,6 +120,50 @@ pag.FAILSAFE = True   # re-enable
 
 ---
 
+### `ENSURE_POSITION`
+
+```python
+ENSURE_POSITION: bool = True
+```
+
+When enabled (default), pointer actions **re-assert the target position right
+before executing** it and **verify the move succeeded**, raising
+`PyAutoGUIException` if the cursor did not land where expected. This protects
+against a user (or another process) moving the mouse at the same moment.
+
+In particular, `click()` re-positions the cursor before **every** click of a
+multi-click sequence.
+
+When disabled:
+- the cursor is **not pulled back** between clicks of a multi-click sequence
+  (the position is only asserted once, before the first click);
+- a move that does not reach its target **no longer raises** `PyAutoGUIException`.
+
+This is useful in interactive/demo scenarios where the user must keep control of
+the mouse, or on platforms where `get_pos()` is slow/imprecise.
+
+```python
+pag.ENSURE_POSITION = False  # let the user keep control of the mouse
+pag.ENSURE_POSITION = True   # restore the default safety behavior
+```
+
+**Per-call override:**
+
+Any pointer method accepts `ensure_position` to override the global setting for
+that specific invocation (`None` = use the global value):
+
+```python
+pag.pointer.click(100, 200, ensure_position=False)  # do not re-assert the position
+pag.pointer.double_click(100, 200, ensure_position=False)
+pag.pointer.move_to(500, 300, ensure_position=False)  # skip the position check
+```
+
+> ⚠️ With `ensure_position=False` and `clicks > 1`, if the user moves the mouse
+> during the `interval`, the subsequent clicks land wherever the user left the
+> cursor — not at the requested coordinates. That is the intended trade-off.
+
+---
+
 ### `LOG_SCREENSHOTS`
 
 ```python
@@ -210,6 +254,7 @@ Output example:
 | `PAUSE_CONTROLLER_DURATION` | `0.1` | `pag.PAUSE` | Pause after each controller call |
 | `PAUSE_OSAL_DURATION` | `0.0` | ❌ settings.py only | Pause after each low-level operation |
 | `FAILSAFE` | `True` | `pag.FAILSAFE` | Emergency stop on corner move |
+| `ENSURE_POSITION` | `True` | `pag.ENSURE_POSITION` | Re-assert/verify pointer position before acting |
 | `LOG_SCREENSHOTS` | `False` | ❌ settings.py only | Screenshot audit trail |
 | `LOG_SCREENSHOTS_FOLDER` | `"log_screenshots_output"` | ❌ settings.py only | Screenshot output directory |
 | `LOG_SCREENSHOTS_LIMIT` | `10` | ❌ settings.py only | Max screenshots on disk |

@@ -168,6 +168,7 @@ class AbstractPointerController(AbstractController):
     def move_to(self,
                 x: Optional[ArgCoordX] = None, y: Optional[ArgCoordY] = None,
                 duration: float = 0.0, tween: Optional[str] = None,
+                ensure_position: Optional[bool] = None,
                 **kwargs: Any) -> None:
         """Move the mouse cursor to an absolute screen position.
 
@@ -180,16 +181,21 @@ class AbstractPointerController(AbstractController):
             tween: Easing function name for animated movement (e.g., 'linear',
                 'easeInQuad'). See pytweening documentation for available options.
                 Ignored if duration is 0.0. Default is 'linear'.
+            ensure_position: If True, verify the move reached the target and raise
+                PyAutoGUIException otherwise. If None (default), uses the global
+                `settings.ENSURE_POSITION` value.
             **kwargs: Keyword arguments (internal usage).
 
         Example:
             >>> pointer.move_to(500, 300)  # Instant jump
             >>> pointer.move_to(500, 300, duration=1.0, tween='easeInOutQuad')  # Smooth 1-second animation
+            >>> pointer.move_to(500, 300, ensure_position=False)  # Skip verification
 
         Note:
             Coordinates are validated against screen bounds by the controller
             before being passed to the OSAL. Percentage strings are resolved
             relative to the primary screen dimensions.
+            See the Settings Guide for `ENSURE_POSITION`.
         """
         pass
 
@@ -197,6 +203,7 @@ class AbstractPointerController(AbstractController):
     def move_rel(self,
                  offset_x: Optional[int] = None, offset_y: Optional[int] = None,
                  duration: float = 0.0, tween: Optional[str] = None,
+                 ensure_position: Optional[bool] = None,
                  **kwargs: Any) -> None:
         """Move the mouse cursor relative to its current position.
 
@@ -207,6 +214,9 @@ class AbstractPointerController(AbstractController):
                 negative values move up. If None, no vertical movement.
             duration: Time in seconds to complete the movement. See move_to().
             tween: Easing function name. See move_to().
+            ensure_position: If True, verify the move reached the target and raise
+                PyAutoGUIException otherwise. If None (default), uses the global
+                `settings.ENSURE_POSITION` value. See move_to().
             **kwargs: Keyword arguments (internal usage).
 
         Example:
@@ -227,6 +237,7 @@ class AbstractPointerController(AbstractController):
     def button_down(self,
                     x: Optional[ArgCoordX] = None, y: Optional[ArgCoordY] = None,
                     button: Optional[ButtonName] = None,
+                    ensure_position: Optional[bool] = None,
                     **kwargs: Any) -> None:
         """Press and hold a mouse button without releasing it.
 
@@ -237,6 +248,9 @@ class AbstractPointerController(AbstractController):
                 current position.
             button: Button to press ('left', 'right', 'middle'). If None,
                 uses the primary button (accounting for left-handed mode).
+            ensure_position: If True, verify the positioning move reached the
+                target and raise PyAutoGUIException otherwise. If None (default),
+                uses the global `settings.ENSURE_POSITION` value.
             **kwargs: Keyword arguments (internal usage).
 
         Example:
@@ -254,6 +268,7 @@ class AbstractPointerController(AbstractController):
     def button_up(self,
                   x: Optional[ArgCoordX] = None, y: Optional[ArgCoordY] = None,
                   button: Optional[ButtonName] = None,
+                  ensure_position: Optional[bool] = None,
                   **kwargs: Any) -> None:
         """Release a previously pressed mouse button.
 
@@ -264,6 +279,9 @@ class AbstractPointerController(AbstractController):
                 current position.
             button: Button to release. Must match the button used in button_down().
                 If None, releases the primary button.
+            ensure_position: If True, verify the positioning move reached the
+                target and raise PyAutoGUIException otherwise. If None (default),
+                uses the global `settings.ENSURE_POSITION` value.
             **kwargs: Keyword arguments (internal usage).
 
         Example:
@@ -285,6 +303,7 @@ class AbstractPointerController(AbstractController):
               button: Optional[ButtonName] = None,
               clicks: int = 1, interval: float = 0.0,
               duration: float = 0.0, tween: Optional[str] = None,
+              ensure_position: Optional[bool] = None,
               **kwargs: Any) -> None:
         """Perform one or more complete click operations (down + up pairs).
 
@@ -299,6 +318,11 @@ class AbstractPointerController(AbstractController):
                 when clicks > 1.
             duration: Time to animate cursor movement before clicking. See move_to().
             tween: Easing function for cursor animation. See move_to().
+            ensure_position: If True (default via settings.ENSURE_POSITION), the
+                pointer is re-positioned and verified before every click. If False,
+                it is positioned once before the first click only, so the cursor is
+                not pulled back between clicks and the user keeps control of the
+                mouse.
             **kwargs: Keyword arguments (internal usage).
 
         Raises:
@@ -308,10 +332,12 @@ class AbstractPointerController(AbstractController):
             >>> pointer.click()  # Single left-click at current position
             >>> pointer.click(x=100, y=200, clicks=2, interval=0.1)  # Double-click
             >>> pointer.click(button='right')  # Right-click (context menu)
+            >>> pointer.click(x=100, y=200, ensure_position=False)  # No cursor re-assert
 
         Note:
             Each click is a complete button_down + button_up sequence. For
             drag operations, use button_down/button_up directly.
+            See the Settings Guide for `ENSURE_POSITION`.
         """
         pass
 
@@ -320,6 +346,7 @@ class AbstractPointerController(AbstractController):
                    x: Optional[ArgCoordX] = None, y: Optional[ArgCoordY] = None,
                    interval: float = 0.0,
                    duration: float = 0.0, tween: Optional[str] = None,
+                   ensure_position: Optional[bool] = None,
                    **kwargs: Any) -> None:
         """Convenience method for a single left-button click.
 
@@ -331,6 +358,8 @@ class AbstractPointerController(AbstractController):
             interval: Unused (kept for API consistency).
             duration: Time to animate cursor movement.
             tween: Easing function for cursor animation. See move_to().
+            ensure_position: See click(). If None (default), uses the global
+                `settings.ENSURE_POSITION` value.
             **kwargs: Keyword arguments (internal usage).
 
         Example:
@@ -343,6 +372,7 @@ class AbstractPointerController(AbstractController):
                     x: Optional[ArgCoordX] = None, y: Optional[ArgCoordY] = None,
                     interval: float = 0.0,
                     duration: float = 0.0, tween: Optional[str] = None,
+                    ensure_position: Optional[bool] = None,
                     **kwargs: Any) -> None:
         """Convenience method for a single right-button click (context menu).
 
@@ -354,6 +384,8 @@ class AbstractPointerController(AbstractController):
             interval: Unused (kept for API consistency).
             duration: Time to animate cursor movement.
             tween: Easing function for cursor animation. See move_to().
+            ensure_position: See click(). If None (default), uses the global
+                `settings.ENSURE_POSITION` value.
             **kwargs: Keyword arguments (internal usage).
 
         Example:
@@ -366,6 +398,7 @@ class AbstractPointerController(AbstractController):
                      x: Optional[ArgCoordX] = None, y: Optional[ArgCoordY] = None,
                      interval: float = 0.0,
                      duration: float = 0.0, tween: Optional[str] = None,
+                     ensure_position: Optional[bool] = None,
                      **kwargs: Any) -> None:
         """Convenience method for a single middle-button click.
 
@@ -377,6 +410,8 @@ class AbstractPointerController(AbstractController):
             interval: Unused (kept for API consistency).
             duration: Time to animate cursor movement.
             tween: Easing function for cursor animation. See move_to().
+            ensure_position: See click(). If None (default), uses the global
+                `settings.ENSURE_POSITION` value.
             **kwargs: Keyword arguments (internal usage).
 
         Example:
@@ -390,6 +425,7 @@ class AbstractPointerController(AbstractController):
                      interval: float = 0.0,
                      button: Optional[ButtonName] = None,
                      duration: float = 0.0, tween: Optional[str] = None,
+                     ensure_position: Optional[bool] = None,
                      **kwargs: Any) -> None:
         """Convenience method for a double left-click.
 
@@ -403,6 +439,8 @@ class AbstractPointerController(AbstractController):
                 uses the primary button.
             duration: Time to animate cursor movement before first click.
             tween: Easing function for cursor animation. See move_to().
+            ensure_position: See click(). If None (default), uses the global
+                `settings.ENSURE_POSITION` value.
             **kwargs: Keyword arguments (internal usage).
 
         Example:
@@ -416,6 +454,7 @@ class AbstractPointerController(AbstractController):
                      interval: float = 0.0,
                      button: Optional[ButtonName] = None,
                      duration: float = 0.0, tween: Optional[str] = None,
+                     ensure_position: Optional[bool] = None,
                      **kwargs: Any) -> None:
         """Convenience method for a triple left-click.
 
@@ -429,6 +468,8 @@ class AbstractPointerController(AbstractController):
                 uses the primary button.
             duration: Time to animate cursor movement before first click.
             tween: Easing function for cursor animation. See move_to().
+            ensure_position: See click(). If None (default), uses the global
+                `settings.ENSURE_POSITION` value.
             **kwargs: Keyword arguments (internal usage).
 
         Example:
@@ -445,6 +486,7 @@ class AbstractPointerController(AbstractController):
                 x: Optional[ArgCoordX] = None, y: Optional[ArgCoordY] = None,
                 button: Optional[ButtonName] = None,
                 duration: float = 0.0, tween: Optional[str] = None,
+                ensure_position: Optional[bool] = None,
                 **kwargs: Any) -> None:
         """Drag from current position to target position while holding a button.
 
@@ -459,6 +501,9 @@ class AbstractPointerController(AbstractController):
             button: Button to hold during drag. If None, uses primary button.
             duration: Time to complete the drag movement (default 0.0 = instant).
             tween: Easing function for drag animation. See move_to().
+            ensure_position: If True, verify the drag reached the target and raise
+                PyAutoGUIException otherwise. If None (default), uses the global
+                `settings.ENSURE_POSITION` value.
             **kwargs: Keyword arguments (internal usage).
 
         Example:
@@ -476,6 +521,7 @@ class AbstractPointerController(AbstractController):
                  offset_x: Optional[int] = None, offset_y: Optional[int] = None,
                  button: Optional[ButtonName] = None,
                  duration: float = 0.0, tween: Optional[str] = None,
+                 ensure_position: Optional[bool] = None,
                  **kwargs: Any) -> None:
         """Drag relative to current position while holding a button.
 
@@ -488,6 +534,8 @@ class AbstractPointerController(AbstractController):
             button: Button to hold during drag. If None, uses primary button.
             duration: Time to complete the drag movement.
             tween: Easing function for drag animation. See move_to().
+            ensure_position: See drag_to(). If None (default), uses the global
+                `settings.ENSURE_POSITION` value.
             **kwargs: Keyword arguments (internal usage).
 
         Example:
@@ -503,6 +551,7 @@ class AbstractPointerController(AbstractController):
     def hscroll(self,
                 clicks: int,
                 x: Optional[ArgCoordX] = None, y: Optional[ArgCoordY] = None,
+                ensure_position: Optional[bool] = None,
                 **kwargs: Any) -> None:
         """Scroll the mouse wheel horizontally.
 
@@ -515,6 +564,9 @@ class AbstractPointerController(AbstractController):
                 scrolls at current position.
             y: Y coordinate to position cursor before scrolling. If None,
                 scrolls at current position.
+            ensure_position: If True, verify the positioning move reached the
+                target and raise PyAutoGUIException otherwise. If None (default),
+                uses the global `settings.ENSURE_POSITION` value.
             **kwargs: Keyword arguments (internal usage).
 
         Example:
@@ -531,6 +583,7 @@ class AbstractPointerController(AbstractController):
     def vscroll(self,
                 clicks: int,
                 x: Optional[ArgCoordX] = None, y: Optional[ArgCoordY] = None,
+                ensure_position: Optional[bool] = None,
                 **kwargs: Any) -> None:
         """Scroll the mouse wheel vertically.
 
@@ -542,6 +595,9 @@ class AbstractPointerController(AbstractController):
                 scrolls at current position.
             y: Y coordinate to position cursor before scrolling. If None,
                 scrolls at current position.
+            ensure_position: If True, verify the positioning move reached the
+                target and raise PyAutoGUIException otherwise. If None (default),
+                uses the global `settings.ENSURE_POSITION` value.
             **kwargs: Keyword arguments (internal usage).
 
         Example:
@@ -558,6 +614,7 @@ class AbstractPointerController(AbstractController):
     def scroll(self,
                clicks: int,
                x: Optional[ArgCoordX] = None, y: Optional[ArgCoordY] = None,
+               ensure_position: Optional[bool] = None,
                **kwargs: Any) -> None:
         """Scroll the mouse wheel.
 
@@ -568,6 +625,9 @@ class AbstractPointerController(AbstractController):
                 scrolls at current position.
             y: Y coordinate to position cursor before scrolling. If None,
                 scrolls at current position.
+            ensure_position: If True, verify the positioning move reached the
+                target and raise PyAutoGUIException otherwise. If None (default),
+                uses the global `settings.ENSURE_POSITION` value.
             **kwargs: Keyword arguments (internal usage).
 
         Example:

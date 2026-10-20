@@ -77,6 +77,34 @@ class TestPauseProperty:
         assert pyautogui_mocked.PAUSE == 3.14159
 
 
+class TestEnsurePositionProperty:
+    """Tests for PyAutoGUI.ENSURE_POSITION property."""
+
+    def test_ensure_position_getter_reads_settings(self, pyautogui_mocked, isolated_settings):
+        """ENSURE_POSITION getter returns the global settings value."""
+        isolated_settings.ENSURE_POSITION = False
+        assert pyautogui_mocked.ENSURE_POSITION is False
+
+        isolated_settings.ENSURE_POSITION = True
+        assert pyautogui_mocked.ENSURE_POSITION is True
+
+    def test_ensure_position_setter_updates_settings(self, pyautogui_mocked, isolated_settings):
+        """ENSURE_POSITION setter updates the global settings value."""
+        pyautogui_mocked.ENSURE_POSITION = False
+        assert isolated_settings.ENSURE_POSITION is False
+
+        pyautogui_mocked.ENSURE_POSITION = True
+        assert isolated_settings.ENSURE_POSITION is True
+
+    def test_ensure_position_roundtrip(self, pyautogui_mocked, isolated_settings):
+        """Setting ENSURE_POSITION via property reflects in getter."""
+        pyautogui_mocked.ENSURE_POSITION = False
+        assert pyautogui_mocked.ENSURE_POSITION is False
+
+        pyautogui_mocked.ENSURE_POSITION = True
+        assert pyautogui_mocked.ENSURE_POSITION is True
+
+
 class TestPropertyIndependence:
     """Tests that FAILSAFE and PAUSE properties are independent."""
 

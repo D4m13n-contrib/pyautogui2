@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING, Any, Optional, Union
 from more_itertools import mark_ends
 from PIL import Image
 
+from .. import settings
 from ..osal.abstract_cls import AbstractPointer
 from ..utils.decorators.failsafe import FailsafeManager
 from ..utils.exceptions import ImageNotFoundException, PyAutoGUIException
@@ -419,11 +420,21 @@ class PointerController(AbstractPointerController):
         # Do a fail-safe check on the last position to be sure the next call not raises it.
         FailsafeManager().check()
 
+    def _resolve_ensure_position(self, ensure_position: Optional[bool] = None) -> bool:
+        """Resolve the effective ensure-position flag (see _move_drag()).
+
+        Implementation Notes:
+            - ensure_position=None falls back to the global settings.ENSURE_POSITION.
+            - Read at call time so runtime settings changes take effect immediately.
+        """
+        return settings.ENSURE_POSITION if ensure_position is None else ensure_position
+
     def _move_drag(self,
                    target_x: Optional[int] = None, target_y: Optional[int] = None,
                    offset_x: Optional[int] = None, offset_y: Optional[int] = None,
                    duration: float = 0.0, tween: Optional[str] = None,
-                   button: Optional[ButtonName] = None):
+                   button: Optional[ButtonName] = None,
+                   ensure_position: Optional[bool] = None):
         """Internal method implementing mouse movement and drag operations.
 
         This is the core implementation for all mouse movement (move_to, move_rel)
@@ -438,6 +449,9 @@ class PointerController(AbstractPointerController):
             duration: Movement duration in seconds (0 = instant).
             tween: Easing function for animation (default: linear).
             button: Mouse button to hold during movement (None = move only).
+            ensure_position: Whether to verify the target position was reached
+                after moving. If None, falls back to the global
+                settings.ENSURE_POSITION value.
 
         Implementation Notes:
             Coordinate Resolution:
@@ -474,6 +488,8 @@ class PointerController(AbstractPointerController):
         if tween is not None and tween not in TweeningManager().tweens:
             raise PyAutoGUIException(f"Unknown tweening name '{tween}'")
 
+        ensure_position = self._resolve_ensure_position(ensure_position)
+
         start_pos = self.get_position()
 
         real_target_pos = self._get_real_target_pos(start_pos, target_x, target_y, offset_x, offset_y)
@@ -494,34 +510,39 @@ class PointerController(AbstractPointerController):
         self._move_drag_all_steps(steps, sleep_amount, button)
 
         # Check target position is reached
-        last_pos = self.get_position()
-        if last_pos != real_target_pos:
-            raise PyAutoGUIException(
-                f"Error: failed to move from {start_pos} to {real_target_pos}, reached {last_pos}."
-            )
+        if ensure_position:
+            last_pos = self.get_position()
+            if last_pos != real_target_pos:
+                raise PyAutoGUIException(
+                    f"Error: failed to move from {start_pos} to {real_target_pos}, reached {last_pos}."
+                )
 
     def move_to(self,
                 x: Optional[ArgCoordX] = None, y: Optional[ArgCoordY] = None,
                 duration: float = 0.0, tween: Optional[str] = None,
+                ensure_position: Optional[bool] = None,
                 **_kwargs: Any) -> None:
         """Implementation Notes:
         - Normalizes coordinates via self._normalize_coords().
+        - ensure_position overrides settings.ENSURE_POSITION for this call.
         """
         x, y = self._normalize_coords(x, y)
-        self._move_drag(target_x=x, target_y=y, duration=duration, tween=tween)
+        self._move_drag(target_x=x, target_y=y, duration=duration, tween=tween, ensure_position=ensure_position)
 
     def move_rel(self,
                  offset_x: Optional[int | tuple | list] = None, offset_y: Optional[int] = None,
                  duration: float = 0.0, tween: Optional[str] = None,
+                 ensure_position: Optional[bool] = None,
                  **_kwargs: Any) -> None:
         """Implementation Notes:
         - Relative to position at time of call (not queued).
+        - ensure_position overrides settings.ENSURE_POSITION for this call.
         """
         if isinstance(offset_x, (tuple, list)):
             off_x, off_y = offset_x[0], offset_x[1]
         else:
             off_x, off_y = offset_x, offset_y
-        self._move_drag(offset_x=off_x, offset_y=off_y, duration=duration, tween=tween)
+        self._move_drag(offset_x=off_x, offset_y=off_y, duration=duration, tween=tween, ensure_position=ensure_position)
 
 
     # --------------------------------------------------
@@ -530,29 +551,33 @@ class PointerController(AbstractPointerController):
     def button_down(self,
                     x: Optional[ArgCoordX] = None, y: Optional[ArgCoordY] = None,
                     button: Optional[ButtonName] = None,
+                    ensure_position: Optional[bool] = None,
                     **_kwargs: Any) -> None:
         """Implementation Notes:
         - Normalizes button name via self._normalize_button().
         - Delegates to self._osal.button_down().
+        - ensure_position overrides settings.ENSURE_POSITION for the positioning move.
         """
         button = self._normalize_button(button)
         x, y = self._normalize_coords(x, y)
 
-        self._move_drag(target_x=x, target_y=y)
+        self._move_drag(target_x=x, target_y=y, ensure_position=ensure_position)
         self._osal.button_down(button)
 
     def button_up(self,
                   x: Optional[ArgCoordX] = None, y: Optional[ArgCoordY] = None,
                   button: Optional[ButtonName] = None,
+                  ensure_position: Optional[bool] = None,
                   **_kwargs: Any) -> None:
         """Implementation Notes:
         - Normalizes button name via self._normalize_button().
         - Delegates to self._osal.button_up().
+        - ensure_position overrides settings.ENSURE_POSITION for the positioning move.
         """
         button = self._normalize_button(button)
         x, y = self._normalize_coords(x, y)
 
-        self._move_drag(target_x=x, target_y=y)
+        self._move_drag(target_x=x, target_y=y, ensure_position=ensure_position)
         self._osal.button_up(button)
 
 
@@ -564,11 +589,16 @@ class PointerController(AbstractPointerController):
               button: Optional[ButtonName] = None,
               clicks: int = 1, interval: float = 0.0,
               duration: float = 0.0, tween: Optional[str] = None,
+              ensure_position: Optional[bool] = None,
               **_kwargs: Any) -> None:
         """Implementation Notes:
         - Normalizes button name via self._normalize_button().
         - Delegates to self._osal.button_down() + self._osal.button_up().
         - interval applies between clicks, not before first click.
+        - ensure_position overrides settings.ENSURE_POSITION for this call. When
+          enabled (default), the pointer is re-positioned and verified before every
+          click. When disabled, it is positioned once before the first click only,
+          so the cursor is not pulled back and the user keeps control of the mouse.
         """
         if clicks < 1:
             raise PyAutoGUIException(f"clicks value must be >= 1 ({clicks})")
@@ -579,10 +609,16 @@ class PointerController(AbstractPointerController):
         button = self._normalize_button(button)
         x, y = self._normalize_coords(x, y)
 
-        for _, is_last, _ in mark_ends(range(clicks)):
-            # Move the pointer to the x, y coordinate before each clicks
-            # to grant position between each clicks
-            self._move_drag(target_x=x, target_y=y, duration=duration, tween=tween)
+        ensure_position = self._resolve_ensure_position(ensure_position)
+
+        for is_first, is_last, _ in mark_ends(range(clicks)):
+            # Move the pointer to the x, y coordinate before each click to grant
+            # position between each click. When position ensuring is disabled, only
+            # the initial positioning move is performed so the cursor is not pulled
+            # back before every click.
+            if ensure_position or is_first:
+                self._move_drag(target_x=x, target_y=y, duration=duration, tween=tween,
+                                ensure_position=ensure_position)
 
             self._osal.button_down(button)
             self._osal.button_up(button)
@@ -594,46 +630,56 @@ class PointerController(AbstractPointerController):
                    x: Optional[ArgCoordX] = None, y: Optional[ArgCoordY] = None,
                    interval: float = 0.0,
                    duration: float = 0.0, tween: Optional[str] = None,
+                   ensure_position: Optional[bool] = None,
                    **_kwargs: Any) -> None:
-        self.click(x, y, ButtonName.LEFT, 1, interval, duration, tween, _log_screenshot=False, _pause=False)
+        self.click(x, y, ButtonName.LEFT, 1, interval, duration, tween, ensure_position,
+                   _log_screenshot=False, _pause=False)
 
     def right_click(self,
                     x: Optional[ArgCoordX] = None, y: Optional[ArgCoordY] = None,
                     interval: float = 0.0,
                     duration: float = 0.0, tween: Optional[str] = None,
+                    ensure_position: Optional[bool] = None,
                     **_kwargs: Any) -> None:
-        self.click(x, y, ButtonName.RIGHT, 1, interval, duration, tween, _log_screenshot=False, _pause=False)
+        self.click(x, y, ButtonName.RIGHT, 1, interval, duration, tween, ensure_position,
+                   _log_screenshot=False, _pause=False)
 
     def middle_click(self,
                      x: Optional[ArgCoordX] = None, y: Optional[ArgCoordY] = None,
                      interval: float = 0.0,
                      duration: float = 0.0, tween: Optional[str] = None,
+                     ensure_position: Optional[bool] = None,
                      **_kwargs: Any) -> None:
-        self.click(x, y, ButtonName.MIDDLE, 1, interval, duration, tween, _log_screenshot=False, _pause=False)
+        self.click(x, y, ButtonName.MIDDLE, 1, interval, duration, tween, ensure_position,
+                   _log_screenshot=False, _pause=False)
 
     def double_click(self,
                      x: Optional[ArgCoordX] = None, y: Optional[ArgCoordY] = None,
                      interval: float = 0.0,
                      button: Optional[ButtonName] = None,
                      duration: float = 0.0, tween: Optional[str] = None,
+                     ensure_position: Optional[bool] = None,
                      **_kwargs: Any) -> None:
         """Implementation Notes:
         - Enforce interval to be > 0.0 to avoid OS considering only one click.
         """
         interval = interval if interval > 0.0 else 0.1
-        self.click(x, y, button, 2, interval, duration, tween, _log_screenshot=False, _pause=False)
+        self.click(x, y, button, 2, interval, duration, tween, ensure_position,
+                   _log_screenshot=False, _pause=False)
 
     def triple_click(self,
                      x: Optional[ArgCoordX] = None, y: Optional[ArgCoordY] = None,
                      interval: float = 0.0,
                      button: Optional[ButtonName] = None,
                      duration: float = 0.0, tween: Optional[str] = None,
+                     ensure_position: Optional[bool] = None,
                      **_kwargs: Any) -> None:
         """Implementation Notes:
         - Enforce interval to be > 0.0 to avoid OS considering only one click.
         """
         interval = interval if interval > 0.0 else 0.1
-        self.click(x, y, button, 3, interval, duration, tween, _log_screenshot=False, _pause=False)
+        self.click(x, y, button, 3, interval, duration, tween, ensure_position,
+                   _log_screenshot=False, _pause=False)
 
 
     # --------------------------------------------------
@@ -643,10 +689,12 @@ class PointerController(AbstractPointerController):
                 x: Optional[ArgCoordX] = None, y: Optional[ArgCoordY] = None,
                 button: Optional[ButtonName] = None,
                 duration: float = 0.0, tween: Optional[str] = None,
+                ensure_position: Optional[bool] = None,
                 **_kwargs: Any) -> None:
         """Implementation Notes:
         - Normalizes coordinates via self._normalize_coords().
         - Normalizes button via self._normalize_button().
+        - ensure_position overrides settings.ENSURE_POSITION for this call.
         """
         x, y = self._normalize_coords(x, y)
         button = self._normalize_button(button)
@@ -654,7 +702,8 @@ class PointerController(AbstractPointerController):
         self._osal.button_down(button)
         # Use try/finally to ensure button_up() always call after button_down()
         try:
-            self._move_drag(target_x=x, target_y=y, duration=duration, tween=tween, button=button)
+            self._move_drag(target_x=x, target_y=y, duration=duration, tween=tween, button=button,
+                            ensure_position=ensure_position)
         finally:
             self._osal.button_up(button)
 
@@ -662,9 +711,11 @@ class PointerController(AbstractPointerController):
                  offset_x: Optional[int | tuple | list] = None, offset_y: Optional[int] = None,
                  button: Optional[ButtonName] = None,
                  duration: float = 0.0, tween: Optional[str] = None,
+                 ensure_position: Optional[bool] = None,
                  **_kwargs: Any) -> None:
         """Implementation Notes:
         - Normalizes button via self._normalize_button().
+        - ensure_position overrides settings.ENSURE_POSITION for this call.
         """
         if isinstance(offset_x, (tuple, list)):
             off_x, off_y = offset_x[0], offset_x[1]
@@ -675,7 +726,8 @@ class PointerController(AbstractPointerController):
         self._osal.button_down(button)
         # Use try/finally to ensure button_up() always call after button_down()
         try:
-            self._move_drag(offset_x=off_x, offset_y=off_y, duration=duration, tween=tween, button=button)
+            self._move_drag(offset_x=off_x, offset_y=off_y, duration=duration, tween=tween, button=button,
+                            ensure_position=ensure_position)
         finally:
             self._osal.button_up(button)
 
@@ -686,34 +738,40 @@ class PointerController(AbstractPointerController):
     def hscroll(self,
                 clicks: int,
                 x: Optional[ArgCoordX] = None, y: Optional[ArgCoordY] = None,
+                ensure_position: Optional[bool] = None,
                 **_kwargs: Any) -> None:
         """Implementation Notes:
         - Normalizes coordinates via self._normalize_coords().
+        - ensure_position overrides settings.ENSURE_POSITION for the positioning move.
         """
         if clicks == 0:
             return
         x, y = self._normalize_coords(x, y)
-        self._move_drag(target_x=x, target_y=y)
+        self._move_drag(target_x=x, target_y=y, ensure_position=ensure_position)
         self._osal.scroll(dx=int(clicks))
 
     def vscroll(self,
                 clicks: int,
                 x: Optional[ArgCoordX] = None, y: Optional[ArgCoordY] = None,
+                ensure_position: Optional[bool] = None,
                 **_kwargs: Any) -> None:
         """Implementation Notes:
         - Normalizes coordinates via self._normalize_coords().
+        - ensure_position overrides settings.ENSURE_POSITION for the positioning move.
         """
         if clicks == 0:
             return
         x, y = self._normalize_coords(x, y)
-        self._move_drag(target_x=x, target_y=y)
+        self._move_drag(target_x=x, target_y=y, ensure_position=ensure_position)
         self._osal.scroll(dy=int(clicks))
 
     def scroll(self,
                clicks: int,
                x: Optional[ArgCoordX] = None, y: Optional[ArgCoordY] = None,
+               ensure_position: Optional[bool] = None,
                **_kwargs: Any) -> None:
         """Implementation Notes:
         - Delegates to self.vscroll().
         """
-        self.vscroll(clicks=clicks, x=x, y=y, _log_screenshot=False, _pause=False)
+        self.vscroll(clicks=clicks, x=x, y=y, ensure_position=ensure_position,
+                     _log_screenshot=False, _pause=False)

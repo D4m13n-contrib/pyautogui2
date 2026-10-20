@@ -100,6 +100,19 @@ pag.pointer.triple_click(100, 200)
 pag.pointer.click(100, 200, clicks=3, interval=0.1)
 ```
 
+> **Position ensuring:** by default, the cursor is re-positioned and the position
+> verified before **each** click (guards against the user moving the mouse mid-sequence).
+> Disable it globally with `pag.ENSURE_POSITION = False`, or per call with
+> `ensure_position=False`:
+>
+> ```python
+> pag.pointer.click(100, 200, clicks=3, ensure_position=False)
+> ```
+>
+> When disabled, the cursor is positioned only once (before the first click) and is
+> no longer pulled back, and a failed move no longer raises. See the
+> [Settings guide](settings.md) for details.
+
 ---
 
 ### Scrolling

@@ -273,6 +273,75 @@ class TestPointerClick:
             pointer_controller._osal.button_down.assert_called()
 
 
+class TestPointerEnsurePosition:
+    """Test the ENSURE_POSITION option (per call and global setting)."""
+
+    def test_move_to_raises_when_enabled(self, pointer_controller):
+        """A failed move raises PyAutoGUIException when ensuring position."""
+        pointer_controller._osal.move_to.side_effect = lambda *_a: None
+
+        with pytest.raises(PyAutoGUIException, match="failed to move"):
+            pointer_controller.move_to(100, 100, ensure_position=True)
+
+    def test_move_to_does_not_raise_when_disabled(self, pointer_controller):
+        """A failed move does not raise when ensure_position is False."""
+        pointer_controller._osal.move_to.side_effect = lambda *_a: None
+
+        # Must not raise
+        pointer_controller.move_to(100, 100, ensure_position=False)
+
+    def test_global_setting_disables_ensure(self, pointer_controller, isolated_settings):
+        """The global setting is used when ensure_position is None."""
+        isolated_settings.ENSURE_POSITION = False
+        pointer_controller._osal.move_to.side_effect = lambda *_a: None
+
+        # Must not raise
+        pointer_controller.move_to(100, 100)
+
+    def test_per_call_overrides_global_false(self, pointer_controller, isolated_settings):
+        """A per-call True overrides a globally disabled setting."""
+        isolated_settings.ENSURE_POSITION = False
+        pointer_controller._osal.move_to.side_effect = lambda *_a: None
+
+        with pytest.raises(PyAutoGUIException, match="failed to move"):
+            pointer_controller.move_to(100, 100, ensure_position=True)
+
+    def test_click_does_not_raise_when_disabled(self, pointer_controller):
+        """A failed positioning move does not raise when disabled."""
+        pointer_controller._osal.move_to.side_effect = lambda *_a: None
+
+        # Must not raise
+        pointer_controller.click(100, 100, ensure_position=False)
+        assert pointer_controller._osal.button_down.call_count == 1
+
+    def test_click_raises_when_enabled(self, pointer_controller):
+        """A failed positioning move raises when enabled."""
+        pointer_controller._osal.move_to.side_effect = lambda *_a: None
+
+        with pytest.raises(PyAutoGUIException, match="failed to move"):
+            pointer_controller.click(100, 100)
+
+    def test_click_disabled_moves_once_for_multiple_clicks(self, pointer_controller):
+        """When disabled, a multi-click only positions once (no cursor pull-back)."""
+        # Simulate the user moving the cursor away after each click
+        pointer_controller._osal.button_up.side_effect = lambda *_a: pointer_controller._osal.mock_set_position(0, 0)
+
+        pointer_controller.click(10, 20, clicks=3, ensure_position=False)
+
+        assert pointer_controller._osal.move_to.call_count == 1
+        assert pointer_controller._osal.button_down.call_count == 3
+        assert pointer_controller._osal.button_up.call_count == 3
+
+    def test_click_enabled_repositions_for_each_click(self, pointer_controller):
+        """When enabled, the cursor is pulled back to the target before each click."""
+        # Simulate the user moving the cursor away after each click
+        pointer_controller._osal.button_up.side_effect = lambda *_a: pointer_controller._osal.mock_set_position(0, 0)
+
+        pointer_controller.click(10, 20, clicks=3)
+
+        assert pointer_controller._osal.move_to.call_count == 3
+
+
 class TestPointerDoubleClick:
     """Test double_click() convenience method."""
 
