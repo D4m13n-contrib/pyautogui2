@@ -453,15 +453,17 @@ class TestTweeningEdgeCases:
 
 
 class TestRealPytweeningIntegration:
-    """Test with real pytweening library if available."""
+    """Test with real pytweening library."""
 
     def test_real_pytweening_easeInQuad(self, tweening_manager_real):
-        """Test real pytweening easeInQuad if available."""
-        try:
-            tween = tweening_manager_real.easeInQuad
+        """Test real pytweening easeInQuad.
 
-            # easeInQuad(0.5) should be 0.25 (0.5^2)
-            result = tween(0.5)
-            assert result == pytest.approx(0.25, rel=0.01)
-        except ImportError:
-            pytest.skip("pytweening not installed")
+        pytweening is a declared dependency, so its absence is an installation
+        error, not a skip condition: let the PyAutoGUIException raised in
+        degraded mode fail loudly instead of masking a broken environment.
+        """
+        tween = tweening_manager_real.easeInQuad
+
+        # easeInQuad(0.5) should be 0.25 (0.5^2)
+        result = tween(0.5)
+        assert result == pytest.approx(0.25, rel=0.01)
