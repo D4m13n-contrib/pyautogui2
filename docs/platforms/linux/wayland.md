@@ -18,7 +18,7 @@ which creates a virtual input device at the kernel level. This bypasses Wayland'
 restrictions entirely, since the events appear to come from a physical device.
 
 ```
-PyAutoGUI2 → python-uinput → /dev/uinput → kernel → Wayland compositor
+PyAutoGUI2 → python-evdev → /dev/uinput → kernel → Wayland compositor
 ```
 
 This part is **compositor-agnostic**: it works the same regardless of which
@@ -86,10 +86,17 @@ UInput is required on all Wayland configurations, regardless of compositor.
 **1. Install the kernel module and Python bindings**
 
 ```bash
-sudo apt install python3-uinput        # Debian / Ubuntu / Mint
-sudo dnf install python3-uinput        # Fedora
-sudo pacman -S python-uinput           # Arch
+sudo apt install python3-evdev         # Debian / Ubuntu / Mint
+sudo dnf install python3-evdev         # Fedora
+sudo pacman -S python-evdev            # Arch
 ```
+
+> **Note:** python-evdev is a regular dependency of PyAutoGUI2, so
+> `pip install pyautogui2` already installs it. The system packages above are
+> only an alternative for distributions where building from source is not
+> desired. Beware of the naming: the package is called **`evdev`** on PyPI
+> (`pip install evdev`), but distribution packages use the usual Python
+> prefix (`python3-evdev` on Debian/Ubuntu/Fedora, `python-evdev` on Arch).
 
 **2. Load the kernel module**
 
@@ -283,9 +290,9 @@ sudo usermod -aG input $USER
 
 ---
 
-**`ModuleNotFoundError: uinput`**
+**`ModuleNotFoundError: evdev`**
 
-The `python-uinput` package is not installed. See [UInput setup](#uinput) above.
+The `python-evdev` package is not installed. See [UInput setup](#uinput) above.
 
 ---
 

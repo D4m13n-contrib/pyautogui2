@@ -39,7 +39,7 @@ python -m pip install pyautogui2   # use the exact Python you run scripts with
 
 ### Missing system dependencies (Linux)
 
-**Symptom:** Installation succeeds but importing raises an error about a missing native library (`python3-xlib`, `python3-uinput`, etc.).
+**Symptom:** Installation succeeds but importing raises an error about a missing native library (`python3-xlib`, `python3-evdev`, etc.).
 
 **Fix:** Install the required system packages. The exact list depends on your display server and desktop environment.
 

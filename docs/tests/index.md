@@ -77,9 +77,10 @@ tests/
 │       ├── linux/
 │       │   ├── mock_backend_gnome_shell.py
 │       │   ├── mock_dbus.py
+│       │   ├── mock_evdev.py
+│       │   ├── mock_gio_glib.py
 │       │   ├── mock_parts.py
 │       │   ├── mock_subprocess.py
-│       │   ├── mock_uinput.py
 │       │   └── mock_xlib.py
 │       ├── macos/
 │       │   ├── mock_appkit.py
